@@ -5496,10 +5496,142 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
             title: legalDocuments?.cookiePolicy?.title || '',
             content: (legalDocuments?.cookiePolicy?.content || '').toString()
           }
+        },
+        liveChatData: {
+          ...liveChatData,
+          enabled: liveChatData?.enabled || false,
+          apiKey: liveChatData?.apiKey || '',
+          selectedResponses: liveChatData?.selectedResponses || '',
+          allTranslations: liveChatData?.allTranslations || ''
         }
       };
 
       console.log('Generating PHP site with data:', siteData);
+
+      // Process and add chat operator photo if live chat is enabled
+      if (siteData.liveChatData?.enabled) {
+        try {
+          console.log('🎭 Processing chat operator photo for PHP...');
+          const response = await fetch('/api/process-chat-photo', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+          
+          if (response.ok) {
+            const photoBlob = await response.blob();
+            const originalFile = response.headers.get('X-Original-File');
+            const photoSize = response.headers.get('X-Photo-Size');
+            
+            imagesFolder.file('operator.jpg', photoBlob);
+            console.log(`✅ Chat operator photo added to PHP export: ${originalFile} (${photoSize} bytes)`);
+          } else {
+            console.warn('⚠️ Could not process chat operator photo for PHP:', response.status);
+          }
+        } catch (error) {
+          console.error('❌ Error processing chat operator photo for PHP:', error);
+        }
+
+        // Add chat open sound for PHP
+        try {
+          console.log('🔊 Adding chat open sound for PHP...');
+          
+          // Try to fetch the sound file from different sources
+          const possiblePaths = [
+            '/api/get-sound-file',  // API endpoint (приоритет)
+            '/1.mp3', 
+            './1.mp3', 
+            './public/1.mp3', 
+            '/public/1.mp3'
+          ];
+          let soundResponse = null;
+          let successPath = null;
+          
+          for (const path of possiblePaths) {
+            try {
+              console.log('🔄 Trying sound path for PHP:', path);
+              soundResponse = await fetch(path);
+              console.log('📡 Sound response for PHP', path, ':', soundResponse.status, soundResponse.statusText);
+              
+              if (soundResponse.ok) {
+                successPath = path;
+                console.log('✅ Found sound file for PHP at:', successPath);
+                
+                // Дополнительная информация для API endpoint
+                if (path === '/api/get-sound-file') {
+                  const fileSize = soundResponse.headers.get('X-File-Size');
+                  console.log('📊 API endpoint info for PHP - Size:', fileSize, 'bytes');
+                }
+                
+                break;
+              }
+            } catch (error) {
+              console.log('❌ Error fetching sound for PHP from', path, ':', error.message);
+            }
+          }
+          
+          if (soundResponse && soundResponse.ok) {
+            console.log('✅ Successfully fetched sound file for PHP');
+            const soundBlob = await soundResponse.blob();
+            console.log('📦 Sound blob size for PHP:', soundBlob.size, 'bytes');
+            const soundBuffer = await soundBlob.arrayBuffer();
+            console.log('🔄 Converting to ArrayBuffer for PHP, size:', soundBuffer.byteLength, 'bytes');
+            
+            // Add only OGG format
+            assetsFolder.file('chat-open.ogg', soundBuffer);
+            
+            console.log('✅ Chat open sound added to PHP export as OGG format');
+            console.log(`📊 Final sound file size for PHP: ${soundBuffer.byteLength} bytes`);
+            console.log('📁 File added to PHP assets/: chat-open.ogg');
+          } else {
+            console.warn('⚠️ Could not load chat sound file for PHP from any path');
+            console.warn('📝 Tried paths for PHP:', possiblePaths);
+            console.warn('🔧 Creating instruction file for PHP instead');
+            
+            // Add manual instruction file
+            assetsFolder.file('README-SOUND.txt', 
+              'ИНСТРУКЦИЯ ПО ДОБАВЛЕНИЮ ЗВУКА ЧАТА (PHP)\n' +
+              '==========================================\n\n' +
+              'Звуковой файл не был найден автоматически.\n' +
+              'Исходный файл: C:\\Users\\840G5\\Desktop\\НОВЫЙ\\public\\1.mp3\n\n' +
+              'Попробованные пути:\n' +
+              possiblePaths.map(path => '- ' + path).join('\n') + '\n\n' +
+              'ЧТО ДЕЛАТЬ:\n' +
+              '1. Найдите файл 1.mp3 в папке public/\n' +
+              '2. Конвертируйте MP3 в OGG формат\n' +
+              '3. Поместите файл в эту папку (assets/)\n' +
+              '4. Переименуйте в chat-open.ogg\n\n' +
+              'ОНЛАЙН КОНВЕРТЕРЫ:\n' +
+              '- https://convertio.co/mp3-ogg/\n' +
+              '- https://online-audio-converter.com/\n' +
+              '- https://cloudconvert.com/mp3-to-ogg'
+            );
+          }
+        } catch (error) {
+          console.error('❌ Error processing chat sound for PHP:', error);
+          // Add manual instruction file with error details
+          assetsFolder.file('README-SOUND.txt', 
+            'ИНСТРУКЦИЯ ПО ДОБАВЛЕНИЮ ЗВУКА ЧАТА (PHP - ОШИБКА)\n' +
+            '==================================================\n\n' +
+            'Произошла ошибка при автоматическом добавлении звука:\n' +
+            'Ошибка: ' + error.message + '\n\n' +
+            'Исходный файл: C:\\Users\\840G5\\Desktop\\НОВЫЙ\\public\\1.mp3\n\n' +
+            'ЧТО ДЕЛАТЬ:\n' +
+            '1. Найдите файл 1.mp3 в папке public/\n' +
+            '2. Конвертируйте MP3 в OGG формат\n' +
+            '3. Поместите файл в эту папку (assets/)\n' +
+            '4. Переименуйте в chat-open.ogg\n\n' +
+            'ОНЛАЙН КОНВЕРТЕРЫ:\n' +
+            '- https://convertio.co/mp3-ogg/\n' +
+            '- https://online-audio-converter.com/\n' +
+            '- https://cloudconvert.com/mp3-to-ogg\n\n' +
+            'ТЕХНИЧЕСКАЯ ИНФОРМАЦИЯ:\n' +
+            'Время ошибки: ' + new Date().toISOString() + '\n' +
+            'User Agent: ' + (typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown')
+          );
+        }
+      }
 
       const phpContent = generatePHP(siteData);
       zip.file('index.php', phpContent);
@@ -5980,7 +6112,18 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
     });
 
     // Генерируем основной HTML с данными документов
-    const mainHtml = generateHTML(data);
+    const fullHtml = generateHTML(data);
+    // Извлекаем только содержимое body без тегов
+    const bodyMatch = fullHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    let mainHtml = bodyMatch ? bodyMatch[1] : fullHtml;
+    
+    // Удаляем live chat из body content чтобы избежать дублирования
+    if (data.liveChatData?.enabled) {
+      // Удаляем live chat HTML
+      mainHtml = mainHtml.replace(/<!-- Live Chat Widget -->[\s\S]*?<\/div>\s*(?=<script|$)/g, '');
+      // Удаляем live chat JavaScript
+      mainHtml = mainHtml.replace(/<script[^>]*>[\s\S]*?console\.log\('🚀 Live Chat JS loaded.*?<\/script>/g, '');
+    }
     
     return `<?php
 require_once DIR. '/../vendor/autoload.php';
@@ -5993,77 +6136,7 @@ if (!str_ends_with($returnPage, '.html')) {
     $returnPage = $returnPage . '.html';
 }
 
-if (!empty($_ENV['GA4_MEASUREMENT_ID'])) {
-   $gtagId = $_ENV['GA4_MEASUREMENT_ID'];
-}
-
-if (!empty($_ENV['GOOGLE_CONVERSION_LABEL'])) {
-    $gtagCLabel = $_ENV['GOOGLE_CONVERSION_LABEL'];
-}
-
-if (!empty($_ENV['BING_PIXEL_ID'])) {
-    $bingPixelId = $_ENV['BING_PIXEL_ID'];
-}
-
-if (!empty($_ENV['FB_PIXEL_ID'])) {
-    $fbPixelId = $_ENV['FB_PIXEL_ID'];
-}
-
-if(!empty($_GET['fbpixelevent']) || !empty($_ENV['FB_EVENT_NAME'])) {
-   $facebookPixelEventLeadKey = $_GET['fbpixelevent'] ?? $_ENV['FB_EVENT_NAME'];
-}
-
 if (isset($_GET['email']) || isset($_GET['name'])) {
-   $email = $_GET['email'] ?? '';
-   $name = $_GET['name'] ?? '';
-   $phone = ltrim('+', $_GET['phone'] ?? '');
-   $lastname = $_GET['lastname'] ?? '';
-
-   if(!empty($fbPixelId)) {
-      echo <<<EOL
-      <script>
-         fbq('track', '$facebookPixelEventLeadKey', {
-            em: '$email',
-            fn: '$name',
-            ln: '$lastname',
-            ph: '$phone',
-         });
-      </script>
-EOL;
-   }
-
-   if(!empty($gtagId) && !empty($gtagCLabel)) {
-      echo <<<EOL
-      <script>
-         gtag('event', 'conversion', {'send_to': '$gtagId/$gtagCLabel'});
-         var head = document.head || document.getElementsByTagName('head')[0];
-         var scriptsElement = document.createElement('script');
-         scriptsElement.innerHTML = "gtag('event', 'conversion', {'send_to': "$gtagId/$gtagCLabel"});";
-         head.appendChild(scriptsElement);
-      </script>
-EOL;
-   }
-
-   if(!empty($bingPixelId)) {
-      echo <<<EOL
-      <script>
-         (function(w, d, t, r, u) {
-            var f, n, i;
-            w[u] = w[u] || [], f = function() {
-                  var o = {
-                     ti: '$bingPixelId',
-                     enableAutoSpaTracking: true
-                  };
-                  o.q = w[u], w[u] = new UET(o), w[u].push("pageLoad")
-            }, n = d.createElement(t), n.src = r, n.async = 1, n.onload = n.onreadystatechange = function() {
-                  var s = this.readyState;
-                  s && s !== "loaded" && s !== "complete" || (f(), n.onload = n.onreadystatechange = null)
-            }, i = d.getElementsByTagName(t)[0], i.parentNode.insertBefore(n, i)
-         })(window, document, "script", " //bat.bing.com/bat.js", "uetq");
-      </script>
-EOL;
-   }
-
    echo <<<EOL
    <script>
       setTimeout( () => {
@@ -6085,43 +6158,15 @@ EOL;
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="stylesheet" href="assets/css/styles.css">
   <meta name="description" content="${data.headerData.description || 'Our site offers the best solutions'}">
-  <?php if(!empty($fbPixelId)): ?>
-  <script>
-     !function (f, b, e, v, n, t, s) {
-        if (f.fbq) return;
-        n = f.fbq = function () {
-              n.callMethod ?
-                 n.callMethod.apply(n, arguments) : n.queue.push(arguments)
-        };
-        if (!f._fbq) f._fbq = n;
-        n.push = n;
-        n.loaded = !0;
-        n.version = '2.0';
-        n.queue = [];
-        t = b.createElement(e);
-        t.async = !0;
-        t.src = v;
-        s = b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t, s)
-     }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-     fbq('init', '$fbPixelId');
-     fbq('track', 'PageView');
-  </script>
-  <?php endif; ?>
-
-  <?php if(!empty($gtagId)): ?>
-  <script src="https://www.googletagmanager.com/gtag/js?id=<?= $gtagId ?>"></script>
-  <script>
-     window.dataLayer = window.dataLayer || [];
-     function gtag(){dataLayer.push(arguments);}
-     gtag('js', new Date());
-
-     gtag('config', '<?= $gtagId ?>');
-  </script>
-  <?php endif; ?>
+  <style>
+    /* Live Chat Styles */
+    ${data.liveChatData?.enabled ? generateLiveChatCSS() : ''}
+  </style>
 </head>
 <body>
 ${mainHtml}
+
+${data.liveChatData?.enabled ? generateLiveChatHTML(data.headerData.siteName || 'Наш сайт', data.headerData.language || 'ru', data.liveChatData) : ''}
 
 <!-- Cookie consent notification -->
 <div id="cookieConsent" style="
@@ -6171,6 +6216,9 @@ ${mainHtml}
       };
     }
   });
+
+  // Live Chat JavaScript
+  ${data.liveChatData?.enabled ? generateLiveChatJS(data.headerData.siteName || 'Наш сайт', data.headerData.language || 'ru', data.liveChatData) : ''}
 </script>
 </body>
 </html>`;

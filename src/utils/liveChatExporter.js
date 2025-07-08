@@ -437,11 +437,11 @@ export const generateLiveChatJS = (siteName = 'My Site', languageCode = 'en', li
       chatToggle.classList.add('has-new-message');
       
 
-      const chatWasClosed = localStorage.getItem('chat-manually-closed') === 'true';
+      const chatWasClosed = sessionStorage.getItem('chat-manually-closed') === 'true';
       if (!chatWasClosed) {
         setTimeout(() => {
 
-          if (chatWindow.classList.contains('hidden') && !localStorage.getItem('chat-manually-closed')) {
+          if (chatWindow.classList.contains('hidden') && !sessionStorage.getItem('chat-manually-closed')) {
             console.log('🎯 Auto-opening chat after 5 seconds');
             openChat();
 
@@ -449,7 +449,7 @@ export const generateLiveChatJS = (siteName = 'My Site', languageCode = 'en', li
           }
         }, 5000);
       } else {
-        console.log('💭 Chat auto-open skipped - user previously closed manually');
+        console.log('💭 Chat auto-open skipped - user previously closed manually in this session');
       }
       
       console.log('✅ Direct chat initialized successfully');
@@ -483,7 +483,7 @@ export const generateLiveChatJS = (siteName = 'My Site', languageCode = 'en', li
       chatToggle.querySelector('.close-icon').classList.add('hidden');
       
       
-      localStorage.setItem('chat-manually-closed', 'true');
+      sessionStorage.setItem('chat-manually-closed', 'true');
       console.log('💾 Chat manually closed - auto-open disabled for this session');
       
       

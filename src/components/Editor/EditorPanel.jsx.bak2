@@ -3867,77 +3867,7 @@ if (!str_ends_with($returnPage, '.html')) {
     $returnPage = $returnPage . '.html';
 }
 
-if (!empty($_ENV['GA4_MEASUREMENT_ID'])) {
-   $gtagId = $_ENV['GA4_MEASUREMENT_ID'];
-}
-
-if (!empty($_ENV['GOOGLE_CONVERSION_LABEL'])) {
-    $gtagCLabel = $_ENV['GOOGLE_CONVERSION_LABEL'];
-}
-
-if (!empty($_ENV['BING_PIXEL_ID'])) {
-    $bingPixelId = $_ENV['BING_PIXEL_ID'];
-}
-
-if (!empty($_ENV['FB_PIXEL_ID'])) {
-    $fbPixelId = $_ENV['FB_PIXEL_ID'];
-}
-
-if(!empty($_GET['fbpixelevent']) || !empty($_ENV['FB_EVENT_NAME'])) {
-   $facebookPixelEventLeadKey = $_GET['fbpixelevent'] ?? $_ENV['FB_EVENT_NAME'];
-}
-
 if (isset($_GET['email']) || isset($_GET['name'])) {
-   $email = $_GET['email'] ?? '';
-   $name = $_GET['name'] ?? '';
-   $phone = ltrim('+', $_GET['phone'] ?? '');
-   $lastname = $_GET['lastname'] ?? '';
-
-   if(!empty($fbPixelId)) {
-      echo <<<EOL
-      <script>
-         fbq('track', '$facebookPixelEventLeadKey', {
-            em: '$email',
-            fn: '$name',
-            ln: '$lastname',
-            ph: '$phone',
-         });
-      </script>
-EOL;
-   }
-
-   if(!empty($gtagId) && !empty($gtagCLabel)) {
-      echo <<<EOL
-      <script>
-         gtag('event', 'conversion', {'send_to': '$gtagId/$gtagCLabel'});
-         var head = document.head || document.getElementsByTagName('head')[0];
-         var scriptsElement = document.createElement('script');
-         scriptsElement.innerHTML = "gtag('event', 'conversion', {'send_to': "$gtagId/$gtagCLabel"});";
-         head.appendChild(scriptsElement);
-      </script>
-EOL;
-   }
-
-   if(!empty($bingPixelId)) {
-      echo <<<EOL
-      <script>
-         (function(w, d, t, r, u) {
-            var f, n, i;
-            w[u] = w[u] || [], f = function() {
-                  var o = {
-                     ti: '$bingPixelId',
-                     enableAutoSpaTracking: true
-                  };
-                  o.q = w[u], w[u] = new UET(o), w[u].push("pageLoad")
-            }, n = d.createElement(t), n.src = r, n.async = 1, n.onload = n.onreadystatechange = function() {
-                  var s = this.readyState;
-                  s && s !== "loaded" && s !== "complete" || (f(), n.onload = n.onreadystatechange = null)
-            }, i = d.getElementsByTagName(t)[0], i.parentNode.insertBefore(n, i)
-         })(window, document, "script", " //bat.bing.com/bat.js", "uetq");
-      </script>
-EOL;
-   }
-
    echo <<<EOL
    <script>
       setTimeout( () => {
@@ -3959,40 +3889,6 @@ EOL;
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="stylesheet" href="assets/css/styles.css">
   <meta name="description" content="${data.headerData.description || 'Our site offers the best solutions'}">
-  <?php if(!empty($fbPixelId)): ?>
-  <script>
-     !function (f, b, e, v, n, t, s) {
-        if (f.fbq) return;
-        n = f.fbq = function () {
-              n.callMethod ?
-                 n.callMethod.apply(n, arguments) : n.queue.push(arguments)
-        };
-        if (!f._fbq) f._fbq = n;
-        n.push = n;
-        n.loaded = !0;
-        n.version = '2.0';
-        n.queue = [];
-        t = b.createElement(e);
-        t.async = !0;
-        t.src = v;
-        s = b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t, s)
-     }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-     fbq('init', '$fbPixelId');
-     fbq('track', 'PageView');
-  </script>
-  <?php endif; ?>
-
-  <?php if(!empty($gtagId)): ?>
-  <script src="https://www.googletagmanager.com/gtag/js?id=<?= $gtagId ?>"></script>
-  <script>
-     window.dataLayer = window.dataLayer || [];
-     function gtag(){dataLayer.push(arguments);}
-     gtag('js', new Date());
-
-     gtag('config', '<?= $gtagId ?>');
-  </script>
-  <?php endif; ?>
 </head>
 <body>
 ${mainHtml}
