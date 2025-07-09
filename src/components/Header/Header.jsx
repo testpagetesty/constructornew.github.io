@@ -12,6 +12,7 @@ import {
   Stack
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import RunningLine from './RunningLine';
 
 const Header = ({ headerData, onMenuClick, contactData }) => {
   const theme = useTheme();
@@ -34,14 +35,24 @@ const Header = ({ headerData, onMenuClick, contactData }) => {
   };
 
   return (
-    <AppBar 
-      position="sticky" 
-      sx={{ 
-        backgroundColor: headerData.backgroundColor,
-        boxShadow: 'none',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.12)'
-      }}
-    >
+    <Box>
+      <RunningLine
+        enabled={headerData.runningLine?.enabled}
+        text={headerData.runningLine?.text}
+        speed={headerData.runningLine?.speed}
+        backgroundColor={headerData.runningLine?.backgroundColor}
+        textColor={headerData.runningLine?.textColor}
+        fontSize={headerData.runningLine?.fontSize}
+        fontWeight={headerData.runningLine?.fontWeight}
+      />
+      <AppBar 
+        position="sticky" 
+        sx={{ 
+          backgroundColor: headerData.backgroundColor,
+          boxShadow: 'none',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.12)'
+        }}
+      >
       <Toolbar sx={{ flexDirection: isMobile ? 'column' : 'row', py: isMobile ? 2 : 1 }}>
         <Box sx={{ 
           display: 'flex', 
@@ -135,6 +146,7 @@ const Header = ({ headerData, onMenuClick, contactData }) => {
         </Box>
       </Toolbar>
     </AppBar>
+    </Box>
   );
 };
 

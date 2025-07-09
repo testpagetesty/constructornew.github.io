@@ -46,7 +46,16 @@ const initialHeaderData = {
     { id: 1, title: 'Главная' },
     { id: 2, title: 'О нас' },
     { id: 3, title: 'Услуги' }
-  ]
+  ],
+  runningLine: {
+    enabled: false,
+    text: '',
+    speed: 35,
+    backgroundColor: '#1976d2',
+    textColor: '#ffffff',
+    fontSize: '14px',
+    fontWeight: 'normal'
+  }
 };
 
 const HeaderEditor = ({ headerData, onHeaderChange, expanded, setExpanded }) => {
@@ -143,6 +152,144 @@ const HeaderEditor = ({ headerData, onHeaderChange, expanded, setExpanded }) => 
                 value={headerData.title || headerData.siteName}
                 onChange={(e) => onHeaderChange({ ...headerData, title: e.target.value })}
               />
+            </Grid>
+
+            {/* Настройки бегущей строки */}
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" gutterBottom sx={{ color: '#1565c0' }}>
+                Бегущая строка
+              </Typography>
+              <Box sx={{ mb: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={headerData.runningLine?.enabled || false}
+                      onChange={(e) => onHeaderChange({
+                        ...headerData,
+                        runningLine: {
+                          ...headerData.runningLine,
+                          enabled: e.target.checked
+                        }
+                      })}
+                    />
+                  }
+                  label="Включить бегущую строку"
+                />
+              </Box>
+              
+              {headerData.runningLine?.enabled && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Текст бегущей строки"
+                    value={headerData.runningLine?.text || ''}
+                    onChange={(e) => {
+                      const newText = e.target.value;
+                      onHeaderChange({
+                        ...headerData,
+                        runningLine: {
+                          ...headerData.runningLine,
+                          text: newText,
+                          enabled: newText.trim() !== '' // Автоматически выключаем если текст пустой
+                        }
+                      });
+                    }}
+                    placeholder="Введите текст для бегущей строки"
+                  />
+                  
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Box>
+                        <Typography variant="body2" sx={{ mb: 1 }}>
+                          Скорость (секунды)
+                        </Typography>
+                        <Slider
+                          value={headerData.runningLine?.speed || 35}
+                          onChange={(e, value) => onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              speed: value
+                            }
+                          })}
+                          min={10}
+                          max={100}
+                          step={5}
+                          marks
+                          valueLabelDisplay="auto"
+                        />
+                      </Box>
+                    </Grid>
+                    
+                    <Grid item xs={6}>
+                      <Box>
+                        <Typography variant="body2" sx={{ mb: 1 }}>
+                          Размер шрифта
+                        </Typography>
+                        <Select
+                          fullWidth
+                          size="small"
+                          value={headerData.runningLine?.fontSize || '14px'}
+                          onChange={(e) => onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              fontSize: e.target.value
+                            }
+                          })}
+                        >
+                          <MenuItem value="12px">12px</MenuItem>
+                          <MenuItem value="14px">14px</MenuItem>
+                          <MenuItem value="16px">16px</MenuItem>
+                          <MenuItem value="18px">18px</MenuItem>
+                          <MenuItem value="20px">20px</MenuItem>
+                        </Select>
+                      </Box>
+                    </Grid>
+                  </Grid>
+                  
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Box>
+                        <Typography variant="body2" sx={{ mb: 1 }}>Цвет фона</Typography>
+                        <input
+                          type="color"
+                          value={headerData.runningLine?.backgroundColor || '#1976d2'}
+                          onChange={(e) => onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              backgroundColor: e.target.value
+                            }
+                          })}
+                          style={{ width: '100%', height: '40px', borderRadius: '4px' }}
+                        />
+                      </Box>
+                    </Grid>
+                    
+                    <Grid item xs={6}>
+                      <Box>
+                        <Typography variant="body2" sx={{ mb: 1 }}>Цвет текста</Typography>
+                        <input
+                          type="color"
+                          value={headerData.runningLine?.textColor || '#ffffff'}
+                          onChange={(e) => onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              textColor: e.target.value
+                            }
+                          })}
+                          style={{ width: '100%', height: '40px', borderRadius: '4px' }}
+                        />
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
+              <Divider sx={{ my: 2 }} />
             </Grid>
             
             <Grid item xs={12} sm={4}>

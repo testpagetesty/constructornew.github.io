@@ -49,6 +49,7 @@ const HeaderEditor = ({
   sectionsData,
   onSectionsChange,
   heroData,
+  contactData,
   expanded,
   onToggle
 }) => {
@@ -323,6 +324,45 @@ const HeaderEditor = ({
       })
     });
   };
+
+  // Функция для синхронизации цветов бегущей строки с контактами
+  const syncRunningLineWithContacts = () => {
+    if (!contactData) return;
+
+    const contactTitleColor = contactData.titleColor || '#1565c0';
+    let contactBackgroundColor = contactData.backgroundColor || '#ffffff';
+
+    // Если используется градиент, берем первый цвет
+    if (contactData.backgroundType === 'gradient' && contactData.gradientColor1) {
+      contactBackgroundColor = contactData.gradientColor1;
+    }
+
+    onHeaderChange({
+      ...headerData,
+      runningLine: {
+        ...headerData.runningLine,
+        textColor: contactTitleColor,
+        backgroundColor: contactBackgroundColor,
+        syncWithContacts: true
+      }
+    });
+  };
+
+  // Эффект для автоматической синхронизации при изменении contactData
+  useEffect(() => {
+    if (headerData.runningLine?.syncWithContacts && contactData) {
+      syncRunningLineWithContacts();
+    }
+  }, [contactData?.titleColor, contactData?.backgroundColor, contactData?.gradientColor1, contactData?.backgroundType]);
+
+  // Эффект для инициализации синхронизации при монтировании или изменении настроек
+  useEffect(() => {
+    if (headerData.runningLine?.syncWithContacts !== false && contactData && headerData.runningLine?.enabled) {
+      setTimeout(() => {
+        syncRunningLineWithContacts();
+      }, 100);
+    }
+  }, [headerData.runningLine?.syncWithContacts, headerData.runningLine?.enabled]);
 
   return (
     <Box>
@@ -713,6 +753,223 @@ const HeaderEditor = ({
                           sx={{ color: '#2e7d32' }}
                         />
                       </Box>
+                    </Grid>
+                  </>
+                )}
+              </Grid>
+            </Paper>
+
+            {/* Настройки бегущей строки */}
+            <Paper sx={{ p: 2, bgcolor: '#fff3e0', borderRadius: 1, boxShadow: 2, mt: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2, color: '#e65100', borderBottom: '2px solid #e65100', pb: 1 }}>
+                Бегущая строка
+              </Typography>
+              
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={headerData.runningLine?.enabled || false}
+                        onChange={(e) => onHeaderChange({
+                          ...headerData,
+                          runningLine: {
+                            ...headerData.runningLine,
+                            enabled: e.target.checked
+                          }
+                        })}
+                      />
+                    }
+                    label="Включить бегущую строку"
+                  />
+                </Grid>
+                
+                {headerData.runningLine?.enabled && (
+                  <>
+                    <Grid item xs={12}>
+                      <FormControlLabel
+                        control={
+                                                  <Switch
+                          checked={headerData.runningLine?.syncWithContacts !== false}
+                          onChange={(e) => {
+                              const syncEnabled = e.target.checked;
+                              onHeaderChange({
+                                ...headerData,
+                                runningLine: {
+                                  ...headerData.runningLine,
+                                  syncWithContacts: syncEnabled
+                                }
+                              });
+                              if (syncEnabled) {
+                                // Немедленно синхронизируем цвета при включении
+                                setTimeout(() => syncRunningLineWithContacts(), 100);
+                              }
+                            }}
+                          />
+                        }
+                        label="Синхронизировать цвета с разделом контактов"
+                        sx={{ mb: 2 }}
+                      />
+                      {headerData.runningLine?.syncWithContacts && (
+                        <Box sx={{ p: 2, bgcolor: '#e3f2fd', borderRadius: 1, border: '1px solid #2196f3' }}>
+                          <Typography variant="body2" sx={{ color: '#1976d2' }}>
+                            💡 Цвета автоматически синхронизируются с настройками контактов
+                            <br />
+                            • Цвет текста ← Цвет заголовка контактов
+                            <br />
+                            • Цвет фона ← Цвет фона контактов
+                          </Typography>
+                        </Box>
+                      )}
+                    </Grid>
+                    
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Текст бегущей строки"
+                        value={headerData.runningLine?.text || ''}
+                        onChange={(e) => {
+                          const newText = e.target.value;
+                          onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              text: newText,
+                              enabled: newText.trim() !== '' // Автоматически выключаем если текст пустой
+                            }
+                          });
+                        }}
+                        placeholder="Введите текст для бегущей строки"
+                        helperText="Текст, который будет двигаться в бегущей строке"
+                      />
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6}>
+                      <Box>
+                        <Typography variant="body2" sx={{ mb: 1, color: '#e65100' }}>
+                          Скорость движения (секунды)
+                        </Typography>
+                        <Slider
+                          value={headerData.runningLine?.speed || 35}
+                          onChange={(e, value) => onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              speed: value
+                            }
+                          })}
+                          min={10}
+                          max={100}
+                          step={5}
+                          marks={[
+                            { value: 10, label: '10с' },
+                            { value: 35, label: '35с' },
+                            { value: 100, label: '100с' }
+                          ]}
+                          valueLabelDisplay="auto"
+                          sx={{ color: '#e65100' }}
+                        />
+                      </Box>
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Размер шрифта</InputLabel>
+                        <Select
+                          value={headerData.runningLine?.fontSize || '14px'}
+                          onChange={(e) => onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              fontSize: e.target.value
+                            }
+                          })}
+                          label="Размер шрифта"
+                        >
+                          <MenuItem value="12px">12px - Маленький</MenuItem>
+                          <MenuItem value="14px">14px - Стандартный</MenuItem>
+                          <MenuItem value="16px">16px - Средний</MenuItem>
+                          <MenuItem value="18px">18px - Большой</MenuItem>
+                          <MenuItem value="20px">20px - Очень большой</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6}>
+                      <Box>
+                        <Typography variant="body2" sx={{ mb: 1, color: headerData.runningLine?.syncWithContacts ? '#9e9e9e' : '#e65100' }}>
+                          Цвет фона бегущей строки
+                          {headerData.runningLine?.syncWithContacts && ' (синхронизация включена)'}
+                        </Typography>
+                        <input
+                          type="color"
+                          value={headerData.runningLine?.backgroundColor || '#1976d2'}
+                          onChange={(e) => onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              backgroundColor: e.target.value,
+                              syncWithContacts: false // Отключаем синхронизацию при ручном изменении
+                            }
+                          })}
+                          disabled={headerData.runningLine?.syncWithContacts}
+                          style={{ 
+                            width: '100%', 
+                            height: '40px', 
+                            borderRadius: '4px',
+                            opacity: headerData.runningLine?.syncWithContacts ? 0.5 : 1
+                          }}
+                        />
+                      </Box>
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6}>
+                      <Box>
+                        <Typography variant="body2" sx={{ mb: 1, color: headerData.runningLine?.syncWithContacts ? '#9e9e9e' : '#e65100' }}>
+                          Цвет текста бегущей строки
+                          {headerData.runningLine?.syncWithContacts && ' (синхронизация включена)'}
+                        </Typography>
+                        <input
+                          type="color"
+                          value={headerData.runningLine?.textColor || '#ffffff'}
+                          onChange={(e) => onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              textColor: e.target.value,
+                              syncWithContacts: false // Отключаем синхронизацию при ручном изменении
+                            }
+                          })}
+                          disabled={headerData.runningLine?.syncWithContacts}
+                          style={{ 
+                            width: '100%', 
+                            height: '40px', 
+                            borderRadius: '4px',
+                            opacity: headerData.runningLine?.syncWithContacts ? 0.5 : 1
+                          }}
+                        />
+                      </Box>
+                    </Grid>
+                    
+                    <Grid item xs={12}>
+                      <FormControl fullWidth>
+                        <InputLabel>Начертание шрифта</InputLabel>
+                        <Select
+                          value={headerData.runningLine?.fontWeight || 'normal'}
+                          onChange={(e) => onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              fontWeight: e.target.value
+                            }
+                          })}
+                          label="Начертание шрифта"
+                        >
+                          <MenuItem value="normal">Обычный</MenuItem>
+                          <MenuItem value="bold">Жирный</MenuItem>
+                          <MenuItem value="lighter">Светлый</MenuItem>
+                        </Select>
+                      </FormControl>
                     </Grid>
                   </>
                 )}

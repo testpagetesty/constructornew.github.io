@@ -1295,7 +1295,17 @@ const EditorPanel = ({
     siteGradientColor2: '#f5f5f5',
     siteGradientDirection: 'to right',
     menuItems: [],
-    language: 'en'
+    language: 'en',
+    runningLine: {
+      enabled: false,
+      text: '',
+      speed: 35,
+      backgroundColor: '#1976d2',
+      textColor: '#ffffff',
+      fontSize: '14px',
+      fontWeight: 'normal',
+      syncWithContacts: true
+    }
   },
   onHeaderChange,
   sectionsData,
@@ -1957,6 +1967,22 @@ const EditorPanel = ({
     z-index: -2;
   "></div>
   ` : ''}
+  
+  <!-- Бегущая строка -->
+  ${data.headerData.runningLine?.enabled && data.headerData.runningLine?.text ? `
+  <div class="running-line-container">
+    <div class="running-line" style="
+      background-color: ${data.headerData.runningLine.backgroundColor || '#1976d2'};
+    ">
+      <div class="running-line-text" style="
+        color: ${data.headerData.runningLine.textColor || '#ffffff'};
+        font-size: ${data.headerData.runningLine.fontSize || '14px'};
+        font-weight: ${data.headerData.runningLine.fontWeight || 'normal'};
+      ">${data.headerData.runningLine.text}</div>
+    </div>
+  </div>
+  ` : ''}
+  
   <header>
     <nav style="background-color: ${data.headerData.backgroundColor || '#ffffff'}; --menu-bg-color: ${data.headerData.backgroundColor || '#fff'}; --menu-link-color: ${data.headerData.linksColor || '#1976d2'};">
       <div class="nav-container">
@@ -3095,7 +3121,8 @@ const EditorPanel = ({
 </html>`;
   };
 
-  const generateCSS = () => {
+  const generateCSS = (data = {}) => {
+    const runningLineSpeed = data?.headerData?.runningLine?.speed || 35;
     return `
       /* Base styles */
       * {
@@ -3289,10 +3316,92 @@ const EditorPanel = ({
         }
       }
 
+      /* Running Line Styles */
+      .running-line-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1200;
+        overflow: hidden;
+        height: auto;
+        min-height: 35px;
+        display: flex;
+        align-items: center;
+      }
+
+      .running-line {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        min-height: 35px;
+        padding: 8px 0;
+      }
+
+      .running-line-text {
+        display: inline-block;
+        animation-name: moveText;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+        animation-duration: ${runningLineSpeed}s;
+        white-space: nowrap;
+        padding-left: 100%;
+        font-size: 14px;
+        line-height: 1.2;
+      }
+
+      .running-line-container:hover .running-line-text {
+        animation-play-state: paused !important;
+      }
+
+      @keyframes moveText {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-100%);
+        }
+      }
+
+      /* Adaptive styles for running line */
+      @media (max-width: 768px) {
+        .running-line-container {
+          min-height: 30px;
+        }
+        
+        .running-line {
+          min-height: 30px;
+          padding: 6px 0;
+        }
+        
+        .running-line-text {
+          font-size: 12px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .running-line-container {
+          min-height: 28px;
+        }
+        
+        .running-line {
+          min-height: 28px;
+          padding: 4px 0;
+        }
+        
+        .running-line-text {
+          font-size: 11px;
+        }
+      }
+
       /* Other styles */
       header {
         position: fixed;
-        top: 0;
+        top: 35px;
         left: 0;
         right: 0;
         z-index: 1000;
@@ -3381,6 +3490,10 @@ const EditorPanel = ({
       }
 
       @media (max-width: 768px) {
+        header {
+          top: 30px;
+        }
+        
         .menu-toggle {
           display: block;
           color: inherit;
@@ -3435,6 +3548,10 @@ const EditorPanel = ({
       }
 
       @media (max-width: 480px) {
+        header {
+          top: 28px;
+        }
+        
         .nav-container {
           padding: 0 0.5rem;
         }
@@ -3458,6 +3575,19 @@ const EditorPanel = ({
         margin: 0;
         padding: 0;
         width: 100%;
+        padding-top: 100px;
+      }
+      
+      @media (max-width: 768px) {
+        body {
+          padding-top: 95px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        body {
+          padding-top: 90px;
+        }
       }
       
       /* Styles for image gallery */
@@ -4889,7 +5019,7 @@ const EditorPanel = ({
       zip.file('index.html', htmlContent);
 
       // Add CSS file
-      const cssContent = generateCSS();
+      const cssContent = generateCSS(siteData);
       cssFolder.file('styles.css', cssContent);
       
       // Add JS file
@@ -5637,7 +5767,7 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
       zip.file('index.php', phpContent);
 
       // Add CSS file
-      const cssContent = generateCSS();
+      const cssContent = generateCSS(siteData);
       cssFolder.file('styles.css', cssContent);
       
       // Add JS file
@@ -6685,6 +6815,7 @@ ${data.liveChatData?.enabled ? generateLiveChatHTML(data.headerData.siteName || 
           headerData={headerData} 
           onHeaderChange={onHeaderChange}
           heroData={heroData}
+          contactData={contactData}
           expanded={expandedSections.header}
           onToggle={() => toggleSection('header')}
           id="header"

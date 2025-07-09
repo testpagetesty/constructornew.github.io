@@ -70,6 +70,227 @@ export const LANGUAGES = [
   { code: 'CUSTOM', label: 'Другой язык по коду ISO 639-1', searchTerms: 'другой custom iso' }
 ];
 
+// Список стран для выбора
+export const COUNTRIES = [
+  // Европа
+  { code: 'RU', label: 'Россия', searchTerms: 'россия russia russian' },
+  { code: 'DE', label: 'Германия', searchTerms: 'германия germany german немецкий' },
+  { code: 'FR', label: 'Франция', searchTerms: 'франция france french французский' },
+  { code: 'GB', label: 'Великобритания', searchTerms: 'великобритания england uk британский' },
+  { code: 'IT', label: 'Италия', searchTerms: 'италия italy italian итальянский' },
+  { code: 'ES', label: 'Испания', searchTerms: 'испания spain spanish испанский' },
+  { code: 'PT', label: 'Португалия', searchTerms: 'португалия portugal portuguese португальский' },
+  { code: 'NL', label: 'Нидерланды', searchTerms: 'нидерланды netherlands dutch голландский' },
+  { code: 'PL', label: 'Польша', searchTerms: 'польша poland polish польский' },
+  { code: 'UA', label: 'Украина', searchTerms: 'украина ukraine ukrainian украинский' },
+  { code: 'BY', label: 'Беларусь', searchTerms: 'беларусь belarus белорусский' },
+  { code: 'CZ', label: 'Чехия', searchTerms: 'чехия czech republic чешский' },
+  { code: 'SK', label: 'Словакия', searchTerms: 'словакия slovakia slovak словацкий' },
+  { code: 'HU', label: 'Венгрия', searchTerms: 'венгрия hungary hungarian венгерский' },
+  { code: 'AT', label: 'Австрия', searchTerms: 'австрия austria austrian австрийский' },
+  { code: 'CH', label: 'Швейцария', searchTerms: 'швейцария switzerland swiss швейцарский' },
+  { code: 'BE', label: 'Бельгия', searchTerms: 'бельгия belgium belgian бельгийский' },
+  { code: 'DK', label: 'Дания', searchTerms: 'дания denmark danish датский' },
+  { code: 'SE', label: 'Швеция', searchTerms: 'швеция sweden swedish шведский' },
+  { code: 'NO', label: 'Норвегия', searchTerms: 'норвегия norway norwegian норвежский' },
+  { code: 'FI', label: 'Финляндия', searchTerms: 'финляндия finland finnish финский' },
+  { code: 'EE', label: 'Эстония', searchTerms: 'эстония estonia estonian эстонский' },
+  { code: 'LV', label: 'Латвия', searchTerms: 'латвия latvia latvian латвийский' },
+  { code: 'LT', label: 'Литва', searchTerms: 'литва lithuania lithuanian литовский' },
+  { code: 'BG', label: 'Болгария', searchTerms: 'болгария bulgarian bg bulgaria' },
+  { code: 'RO', label: 'Румыния', searchTerms: 'румыния romania romanian румынский' },
+  { code: 'GR', label: 'Греция', searchTerms: 'греция greece greek греческий' },
+  { code: 'HR', label: 'Хорватия', searchTerms: 'хорватия croatia croatian хорватский' },
+  { code: 'RS', label: 'Сербия', searchTerms: 'сербия serbia serbian сербский' },
+  { code: 'SI', label: 'Словения', searchTerms: 'словения slovenia slovenian словенский' },
+  { code: 'IE', label: 'Ирландия', searchTerms: 'ирландия ireland irish ирландский' },
+  { code: 'IS', label: 'Исландия', searchTerms: 'исландия iceland icelandic исландский' },
+  { code: 'LU', label: 'Люксембург', searchTerms: 'люксембург luxembourg luxembourgish' },
+  { code: 'MT', label: 'Мальта', searchTerms: 'мальта malta maltese мальтийский' },
+  { code: 'CY', label: 'Кипр', searchTerms: 'кипр cyprus cypriot кипрский' },
+  { code: 'MC', label: 'Монако', searchTerms: 'монако monaco monégasque' },
+  { code: 'SM', label: 'Сан-Марино', searchTerms: 'сан-марино san marino sammarinese' },
+  { code: 'VA', label: 'Ватикан', searchTerms: 'ватикан vatican' },
+  { code: 'AD', label: 'Андорра', searchTerms: 'андорра andorra andorran' },
+  { code: 'LI', label: 'Лихтенштейн', searchTerms: 'лихтенштейн liechtenstein' },
+  { code: 'AL', label: 'Албания', searchTerms: 'албания albania albanian албанский' },
+  { code: 'BA', label: 'Босния и Герцеговина', searchTerms: 'босния herzegovina bosnian боснийский' },
+  { code: 'ME', label: 'Черногория', searchTerms: 'черногория montenegro montenegrin черногорский' },
+  { code: 'MK', label: 'Северная Македония', searchTerms: 'македония macedonia macedonian македонский' },
+  { code: 'XK', label: 'Косово', searchTerms: 'косово kosovo kosovar' },
+  { code: 'MD', label: 'Молдова', searchTerms: 'молдова moldova moldovan молдавский' },
+  
+  // Азия
+  { code: 'KZ', label: 'Казахстан', searchTerms: 'казахстан kazakhstan казахский' },
+  { code: 'UZ', label: 'Узбекистан', searchTerms: 'узбекистан uzbekistan uzbek узбекский' },
+  { code: 'KG', label: 'Кыргызстан', searchTerms: 'кыргызстан kyrgyzstan kyrgyz киргизский' },
+  { code: 'TJ', label: 'Таджикистан', searchTerms: 'таджикистан tajikistan tajik таджикский' },
+  { code: 'TM', label: 'Туркменистан', searchTerms: 'туркменистан turkmenistan turkmen туркменский' },
+  { code: 'CN', label: 'Китай', searchTerms: 'китай china chinese китайский' },
+  { code: 'JP', label: 'Япония', searchTerms: 'япония japan japanese японский' },
+  { code: 'KR', label: 'Южная Корея', searchTerms: 'корея korea korean корейский' },
+  { code: 'KP', label: 'Северная Корея', searchTerms: 'северная корея north korea корейский' },
+  { code: 'IN', label: 'Индия', searchTerms: 'индия india indian индийский' },
+  { code: 'PK', label: 'Пакистан', searchTerms: 'пакистан pakistan pakistani пакистанский' },
+  { code: 'BD', label: 'Бангладеш', searchTerms: 'бангладеш bangladesh bangladeshi бангладешский' },
+  { code: 'LK', label: 'Шри-Ланка', searchTerms: 'шри-ланка sri lanka sri lankan' },
+  { code: 'MM', label: 'Мьянма', searchTerms: 'мьянма myanmar burmese бирманский' },
+  { code: 'TH', label: 'Таиланд', searchTerms: 'таиланд thailand thai тайский' },
+  { code: 'VN', label: 'Вьетнам', searchTerms: 'вьетнам vietnam vietnamese вьетнамский' },
+  { code: 'KH', label: 'Камбоджа', searchTerms: 'камбоджа cambodia cambodian камбоджийский' },
+  { code: 'LA', label: 'Лаос', searchTerms: 'лаос laos laotian лаосский' },
+  { code: 'ID', label: 'Индонезия', searchTerms: 'индонезия indonesia indonesian индонезийский' },
+  { code: 'MY', label: 'Малайзия', searchTerms: 'малайзия malaysia malaysian малайзийский' },
+  { code: 'SG', label: 'Сингапур', searchTerms: 'сингапур singapore singaporean сингапурский' },
+  { code: 'PH', label: 'Филиппины', searchTerms: 'филиппины philippines filipino филиппинский' },
+  { code: 'BN', label: 'Бруней', searchTerms: 'бруней brunei bruneian брунейский' },
+  { code: 'TL', label: 'Восточный Тимор', searchTerms: 'восточный тимор east timor timorese' },
+  { code: 'MN', label: 'Монголия', searchTerms: 'монголия mongolia mongolian монгольский' },
+  { code: 'AF', label: 'Афганистан', searchTerms: 'афганистан afghanistan afghan афганский' },
+  { code: 'IR', label: 'Иран', searchTerms: 'иран iran iranian иранский' },
+  { code: 'IQ', label: 'Ирак', searchTerms: 'ирак iraq iraqi иракский' },
+  { code: 'SY', label: 'Сирия', searchTerms: 'сирия syria syrian сирийский' },
+  { code: 'LB', label: 'Ливан', searchTerms: 'ливан lebanon lebanese ливанский' },
+  { code: 'JO', label: 'Иордания', searchTerms: 'иордания jordan jordanian иорданский' },
+  { code: 'IL', label: 'Израиль', searchTerms: 'израиль israel israeli израильский' },
+  { code: 'PS', label: 'Палестина', searchTerms: 'палестина palestine palestinian палестинский' },
+  { code: 'SA', label: 'Саудовская Аравия', searchTerms: 'саудовская аравия saudi arabia арабский' },
+  { code: 'AE', label: 'ОАЭ', searchTerms: 'оаэ uae emirates эмираты' },
+  { code: 'QA', label: 'Катар', searchTerms: 'катар qatar qatari катарский' },
+  { code: 'BH', label: 'Бахрейн', searchTerms: 'бахрейн bahrain bahraini бахрейнский' },
+  { code: 'KW', label: 'Кувейт', searchTerms: 'кувейт kuwait kuwaiti кувейтский' },
+  { code: 'OM', label: 'Оман', searchTerms: 'оман oman omani оманский' },
+  { code: 'YE', label: 'Йемен', searchTerms: 'йемен yemen yemeni йеменский' },
+  { code: 'GE', label: 'Грузия', searchTerms: 'грузия georgia georgian грузинский' },
+  { code: 'AM', label: 'Армения', searchTerms: 'армения armenia armenian армянский' },
+  { code: 'AZ', label: 'Азербайджан', searchTerms: 'азербайджан azerbaijan azerbaijani азербайджанский' },
+  { code: 'TR', label: 'Турция', searchTerms: 'турция turkey turkish турецкий' },
+  { code: 'CY', label: 'Кипр', searchTerms: 'кипр cyprus cypriot кипрский' },
+  { code: 'NP', label: 'Непал', searchTerms: 'непал nepal nepali непальский' },
+  { code: 'BT', label: 'Бутан', searchTerms: 'бутан bhutan bhutanese бутанский' },
+  { code: 'MV', label: 'Мальдивы', searchTerms: 'мальдивы maldives maldivian мальдивский' },
+  
+  // Америка
+  { code: 'US', label: 'США', searchTerms: 'сша usa america американский' },
+  { code: 'CA', label: 'Канада', searchTerms: 'канада canada canadian канадский' },
+  { code: 'MX', label: 'Мексика', searchTerms: 'мексика mexico mexican мексиканский' },
+  { code: 'GT', label: 'Гватемала', searchTerms: 'гватемала guatemala guatemalan гватемальский' },
+  { code: 'BZ', label: 'Белиз', searchTerms: 'белиз belize belizean белизский' },
+  { code: 'SV', label: 'Сальвадор', searchTerms: 'сальвадор salvador salvadoran сальвадорский' },
+  { code: 'HN', label: 'Гондурас', searchTerms: 'гондурас honduras honduran гондурасский' },
+  { code: 'NI', label: 'Никарагуа', searchTerms: 'никарагуа nicaragua nicaraguan никарагуанский' },
+  { code: 'CR', label: 'Коста-Рика', searchTerms: 'коста-рика costa rica costa rican костариканский' },
+  { code: 'PA', label: 'Панама', searchTerms: 'панама panama panamanian панамский' },
+  { code: 'CU', label: 'Куба', searchTerms: 'куба cuba cuban кубинский' },
+  { code: 'JM', label: 'Ямайка', searchTerms: 'ямайка jamaica jamaican ямайский' },
+  { code: 'HT', label: 'Гаити', searchTerms: 'гаити haiti haitian гаитянский' },
+  { code: 'DO', label: 'Доминиканская Республика', searchTerms: 'доминиканская dominican доминиканский' },
+  { code: 'PR', label: 'Пуэрто-Рико', searchTerms: 'пуэрто-рико puerto rico puerto rican' },
+  { code: 'TT', label: 'Тринидад и Тобаго', searchTerms: 'тринидад tobago trinidadian тобагский' },
+  { code: 'BB', label: 'Барбадос', searchTerms: 'барбадос barbados barbadian барбадосский' },
+  { code: 'GD', label: 'Гренада', searchTerms: 'гренада grenada grenadian гренадский' },
+  { code: 'VC', label: 'Сент-Винсент и Гренадины', searchTerms: 'сент-винсент vincent grenadines' },
+  { code: 'LC', label: 'Сент-Люсия', searchTerms: 'сент-люсия saint lucia lucian' },
+  { code: 'DM', label: 'Доминика', searchTerms: 'доминика dominica dominican доминиканский' },
+  { code: 'AG', label: 'Антигуа и Барбуда', searchTerms: 'антигуа antigua barbuda antiguan' },
+  { code: 'KN', label: 'Сент-Китс и Невис', searchTerms: 'сент-китс saint kitts nevis' },
+  { code: 'BS', label: 'Багамы', searchTerms: 'багамы bahamas bahamian багамский' },
+  { code: 'BR', label: 'Бразилия', searchTerms: 'бразилия brazil brazilian бразильский' },
+  { code: 'AR', label: 'Аргентина', searchTerms: 'аргентина argentina argentine аргентинский' },
+  { code: 'CL', label: 'Чили', searchTerms: 'чили chile chilean чилийский' },
+  { code: 'PE', label: 'Перу', searchTerms: 'перу peru peruvian перуанский' },
+  { code: 'BO', label: 'Боливия', searchTerms: 'боливия bolivia bolivian боливийский' },
+  { code: 'CO', label: 'Колумбия', searchTerms: 'колумбия colombia colombian колумбийский' },
+  { code: 'VE', label: 'Венесуэла', searchTerms: 'венесуэла venezuela venezuelan венесуэльский' },
+  { code: 'GY', label: 'Гайана', searchTerms: 'гайана guyana guyanese гайанский' },
+  { code: 'SR', label: 'Суринам', searchTerms: 'суринам suriname surinamese суринамский' },
+  { code: 'GF', label: 'Французская Гвиана', searchTerms: 'французская гвиана french guiana' },
+  { code: 'EC', label: 'Эквадор', searchTerms: 'эквадор ecuador ecuadorian эквадорский' },
+  { code: 'UY', label: 'Уругвай', searchTerms: 'уругвай uruguay uruguayan уругвайский' },
+  { code: 'PY', label: 'Парагвай', searchTerms: 'парагвай paraguay paraguayan парагвайский' },
+  
+  // Африка
+  { code: 'EG', label: 'Египет', searchTerms: 'египет egypt egyptian египетский' },
+  { code: 'LY', label: 'Ливия', searchTerms: 'ливия libya libyan ливийский' },
+  { code: 'TN', label: 'Тунис', searchTerms: 'тунис tunisia tunisian тунисский' },
+  { code: 'DZ', label: 'Алжир', searchTerms: 'алжир algeria algerian алжирский' },
+  { code: 'MA', label: 'Марокко', searchTerms: 'марокко morocco moroccan марокканский' },
+  { code: 'SD', label: 'Судан', searchTerms: 'судан sudan sudanese суданский' },
+  { code: 'SS', label: 'Южный Судан', searchTerms: 'южный судан south sudan' },
+  { code: 'ET', label: 'Эфиопия', searchTerms: 'эфиопия ethiopia ethiopian эфиопский' },
+  { code: 'ER', label: 'Эритрея', searchTerms: 'эритрея eritrea eritrean эритрейский' },
+  { code: 'DJ', label: 'Джибути', searchTerms: 'джибути djibouti djiboutian джибутийский' },
+  { code: 'SO', label: 'Сомали', searchTerms: 'сомали somalia somali сомалийский' },
+  { code: 'KE', label: 'Кения', searchTerms: 'кения kenya kenyan кенийский' },
+  { code: 'UG', label: 'Уганда', searchTerms: 'уганда uganda ugandan угандийский' },
+  { code: 'TZ', label: 'Танзания', searchTerms: 'танзания tanzania tanzanian танзанийский' },
+  { code: 'RW', label: 'Руанда', searchTerms: 'руанда rwanda rwandan руандийский' },
+  { code: 'BI', label: 'Бурунди', searchTerms: 'бурунди burundi burundian бурундийский' },
+  { code: 'MG', label: 'Мадагаскар', searchTerms: 'мадагаскар madagascar malagasy малагасийский' },
+  { code: 'MU', label: 'Маврикий', searchTerms: 'маврикий mauritius mauritian маврикийский' },
+  { code: 'SC', label: 'Сейшелы', searchTerms: 'сейшелы seychelles seychellois сейшельский' },
+  { code: 'KM', label: 'Коморы', searchTerms: 'коморы comoros comorian коморский' },
+  { code: 'MW', label: 'Малави', searchTerms: 'малави malawi malawian малавийский' },
+  { code: 'ZM', label: 'Замбия', searchTerms: 'замбия zambia zambian замбийский' },
+  { code: 'ZW', label: 'Зимбабве', searchTerms: 'зимбабве zimbabwe zimbabwean зимбабвийский' },
+  { code: 'BW', label: 'Ботсвана', searchTerms: 'ботсвана botswana botswanan ботсванский' },
+  { code: 'NA', label: 'Намибия', searchTerms: 'намибия namibia namibian намибийский' },
+  { code: 'SZ', label: 'Эсватини', searchTerms: 'эсватини swaziland swazi свазилендский' },
+  { code: 'LS', label: 'Лесото', searchTerms: 'лесото lesotho lesothan лесотский' },
+  { code: 'ZA', label: 'ЮАР', searchTerms: 'юар south africa южноафриканский' },
+  { code: 'MZ', label: 'Мозамбик', searchTerms: 'мозамбик mozambique mozambican мозамбикский' },
+  { code: 'AO', label: 'Ангола', searchTerms: 'ангола angola angolan анголийский' },
+  { code: 'ZR', label: 'ДР Конго', searchTerms: 'конго congo congolese конголезский' },
+  { code: 'CG', label: 'Республика Конго', searchTerms: 'республика конго congo congolese' },
+  { code: 'CM', label: 'Камерун', searchTerms: 'камерун cameroon cameroonian камерунский' },
+  { code: 'CF', label: 'ЦАР', searchTerms: 'цар central african republic' },
+  { code: 'TD', label: 'Чад', searchTerms: 'чад chad chadian чадский' },
+  { code: 'NE', label: 'Нигер', searchTerms: 'нигер niger nigerien нигерский' },
+  { code: 'NG', label: 'Нигерия', searchTerms: 'нигерия nigeria nigerian нигерийский' },
+  { code: 'BJ', label: 'Бенин', searchTerms: 'бенин benin beninese бенинский' },
+  { code: 'TG', label: 'Того', searchTerms: 'того togo togolese тоголезский' },
+  { code: 'GH', label: 'Гана', searchTerms: 'гана ghana ghanaian ганский' },
+  { code: 'BF', label: 'Буркина-Фасо', searchTerms: 'буркина-фасо burkina faso burkinabe' },
+  { code: 'CI', label: 'Кот-д\'Ивуар', searchTerms: 'кот-д\'ивуар ivory coast ivorian' },
+  { code: 'LR', label: 'Либерия', searchTerms: 'либерия liberia liberian либерийский' },
+  { code: 'SL', label: 'Сьерра-Леоне', searchTerms: 'сьерра-леоне sierra leone sierra leonean' },
+  { code: 'GN', label: 'Гвинея', searchTerms: 'гвинея guinea guinean гвинейский' },
+  { code: 'GW', label: 'Гвинея-Бисау', searchTerms: 'гвинея-бисау guinea-bissau bissau-guinean' },
+  { code: 'SN', label: 'Сенегал', searchTerms: 'сенегал senegal senegalese сенегальский' },
+  { code: 'GM', label: 'Гамбия', searchTerms: 'гамбия gambia gambian гамбийский' },
+  { code: 'ML', label: 'Мали', searchTerms: 'мали mali malian малийский' },
+  { code: 'MR', label: 'Мавритания', searchTerms: 'мавритания mauritania mauritanian мавританский' },
+  { code: 'CV', label: 'Кабо-Верде', searchTerms: 'кабо-верде cape verde cape verdean' },
+  { code: 'ST', label: 'Сан-Томе и Принсипи', searchTerms: 'сан-томе principe sao tome' },
+  { code: 'GQ', label: 'Экваториальная Гвинея', searchTerms: 'экваториальная гвинея equatorial guinea' },
+  { code: 'GA', label: 'Габон', searchTerms: 'габон gabon gabonese габонский' },
+  
+  // Океания
+  { code: 'AU', label: 'Австралия', searchTerms: 'австралия australia australian австралийский' },
+  { code: 'NZ', label: 'Новая Зеландия', searchTerms: 'новая зеландия new zealand new zealander' },
+  { code: 'PG', label: 'Папуа-Новая Гвинея', searchTerms: 'папуа-новая гвинея papua new guinea' },
+  { code: 'FJ', label: 'Фиджи', searchTerms: 'фиджи fiji fijian фиджийский' },
+  { code: 'NC', label: 'Новая Каледония', searchTerms: 'новая каледония new caledonia' },
+  { code: 'VU', label: 'Вануату', searchTerms: 'вануату vanuatu vanuatuan вануатский' },
+  { code: 'SB', label: 'Соломоновы Острова', searchTerms: 'соломоновы острова solomon islands' },
+  { code: 'PF', label: 'Французская Полинезия', searchTerms: 'французская полинезия french polynesia' },
+  { code: 'WS', label: 'Самоа', searchTerms: 'самоа samoa samoan самоанский' },
+  { code: 'AS', label: 'Американское Самоа', searchTerms: 'американское самоа american samoa' },
+  { code: 'TO', label: 'Тонга', searchTerms: 'тонга tonga tongan тонганский' },
+  { code: 'CK', label: 'Острова Кука', searchTerms: 'острова кука cook islands' },
+  { code: 'NU', label: 'Ниуэ', searchTerms: 'ниуэ niue niuean' },
+  { code: 'KI', label: 'Кирибати', searchTerms: 'кирибати kiribati i-kiribati' },
+  { code: 'TV', label: 'Тувалу', searchTerms: 'тувалу tuvalu tuvaluan тувалуанский' },
+  { code: 'NR', label: 'Науру', searchTerms: 'науру nauru nauruan науруанский' },
+  { code: 'PW', label: 'Палау', searchTerms: 'палау palau palauan палауанский' },
+  { code: 'FM', label: 'Микронезия', searchTerms: 'микронезия micronesia micronesian микронезийский' },
+  { code: 'MH', label: 'Маршалловы Острова', searchTerms: 'маршалловы острова marshall islands' },
+  { code: 'GU', label: 'Гуам', searchTerms: 'гуам guam guamanian гуамский' },
+  { code: 'MP', label: 'Северные Марианские острова', searchTerms: 'северные марианские northern mariana' },
+  
+  { code: 'CUSTOM', label: 'Другая страна', searchTerms: 'другая custom' }
+];
+
 // Предустановленные стили контента
 export const CONTENT_STYLES = {
   FORMAL: 'Формальный',
@@ -80,6 +301,7 @@ export const CONTENT_STYLES = {
 
 const GlobalSettings = ({ open, onClose, settings, onSettingsChange }) => {
   const [languageInputValue, setLanguageInputValue] = useState('');
+  const [countryInputValue, setCountryInputValue] = useState('');
   
   const handleChange = (field, value) => {
     onSettingsChange({
@@ -94,6 +316,12 @@ const GlobalSettings = ({ open, onClose, settings, onSettingsChange }) => {
     return LANGUAGES.find(lang => lang.code === settings.language) || null;
   }, [settings.language]);
 
+  // Находим выбранную страну для отображения
+  const selectedCountry = useMemo(() => {
+    if (!settings.country) return null;
+    return COUNTRIES.find(country => country.code === settings.country) || null;
+  }, [settings.country]);
+
   // Фильтрация языков для поиска
   const filteredLanguages = useMemo(() => {
     if (!languageInputValue) return LANGUAGES;
@@ -105,6 +333,18 @@ const GlobalSettings = ({ open, onClose, settings, onSettingsChange }) => {
       lang.code.toLowerCase().includes(searchTerm)
     );
   }, [languageInputValue]);
+
+  // Фильтрация стран для поиска
+  const filteredCountries = useMemo(() => {
+    if (!countryInputValue) return COUNTRIES;
+    
+    const searchTerm = countryInputValue.toLowerCase();
+    return COUNTRIES.filter(country => 
+      country.label.toLowerCase().includes(searchTerm) ||
+      country.searchTerms.toLowerCase().includes(searchTerm) ||
+      country.code.toLowerCase().includes(searchTerm)
+    );
+  }, [countryInputValue]);
 
   return (
     <Dialog 
@@ -207,6 +447,56 @@ const GlobalSettings = ({ open, onClose, settings, onSettingsChange }) => {
           </Grid>
 
           <Grid item xs={12} sm={6}>
+            <Autocomplete
+              fullWidth
+              options={filteredCountries}
+              value={selectedCountry}
+              onChange={(event, newValue) => {
+                handleChange('country', newValue ? newValue.code : '');
+              }}
+              inputValue={countryInputValue}
+              onInputChange={(event, newInputValue) => {
+                setCountryInputValue(newInputValue);
+              }}
+              getOptionLabel={(option) => option.label}
+              renderOption={(props, option) => (
+                <Box component="li" {...props} key={option.code}>
+                  <Typography variant="body2">
+                    {option.label}
+                  </Typography>
+                </Box>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Выберите страну"
+                  placeholder={selectedCountry ? "" : "Выберите страну"}
+                  helperText="Например: россия, германия, usa, france..."
+                  variant="outlined"
+                />
+              )}
+              noOptionsText="Страна не найдена"
+              clearText="Очистить"
+              openText="Открыть список"
+              closeText="Закрыть список"
+              isClearable
+              clearOnBlur={false}
+              selectOnFocus
+            />
+            {settings.country === 'CUSTOM' && (
+              <TextField
+                fullWidth
+                sx={{ mt: 2 }}
+                label="Введите название страны"
+                placeholder="Например: Казахстан, Узбекистан, Молдова..."
+                value={settings.customCountry || ''}
+                onChange={(e) => handleChange('customCountry', e.target.value)}
+                helperText="Укажите полное название страны"
+              />
+            )}
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Стиль контента</InputLabel>
               <Select
@@ -264,6 +554,9 @@ const GlobalSettings = ({ open, onClose, settings, onSettingsChange }) => {
                 <Typography component="li" variant="body2" sx={{ mb: 1 }}>
                   <strong>Обязательно выбрать язык контента</strong> - укажите язык для генерации всего контента
                 </Typography>
+                <Typography component="li" variant="body2" sx={{ mb: 1 }}>
+                  <strong>Выбрать страну</strong> - укажите страну для адаптации контента под местную специфику
+                </Typography>
                 <Typography component="li" variant="body2" sx={{ mb: 0 }}>
                   <strong>В ключевых особенностях прописать по порядку:</strong>
                   <br />
@@ -297,10 +590,6 @@ const GlobalSettings = ({ open, onClose, settings, onSettingsChange }) => {
               </Typography>
             </Box>
           </Grid>
-
-
-
-
         </Grid>
       </DialogContent>
       <DialogActions sx={{ borderTop: '1px solid rgba(0, 0, 0, 0.12)', p: 2 }}>

@@ -1181,6 +1181,13 @@ export const parseFullSite = (content, headerData = {}, contactData = {}) => {
               console.error('parseHero вернул null для раздела HERO');
             }
             break;
+          case 'ПРЕЗЕНТАЦИОННОЕ СООБЩЕНИЕ':
+            sections.runningLineMessage = parsePresentationMessage(sectionContent);
+            console.log('Результат парсинга презентационного сообщения:', sections.runningLineMessage);
+            if (!sections.runningLineMessage) {
+              console.error('parsePresentationMessage вернул null для раздела ПРЕЗЕНТАЦИОННОЕ СООБЩЕНИЕ');
+            }
+            break;
           case 'УСЛУГИ':
             sections.services = parseServices(sectionContent);
             console.log('Результат парсинга Services:', sections.services);
@@ -1332,6 +1339,24 @@ export const parseContactsFull = (content, headerData = {}) => {
     return contactData;
   } catch (error) {
     console.error('Error parsing contacts from full site structure:', error);
+    return null;
+  }
+};
+
+// Функция для парсинга презентационного сообщения для бегущей строки
+export const parsePresentationMessage = (content) => {
+  try {
+    const lines = content.split('\n').map(line => line.trim()).filter(line => line);
+    
+    if (lines.length >= 1) {
+      const message = lines[0];
+      console.log('Найдено презентационное сообщение:', message);
+      return message;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error parsing presentation message:', error);
     return null;
   }
 }; 
