@@ -44,6 +44,10 @@ const Header = ({ headerData, onMenuClick, contactData }) => {
         textColor={headerData.runningLine?.textColor}
         fontSize={headerData.runningLine?.fontSize}
         fontWeight={headerData.runningLine?.fontWeight}
+        fontFamily={headerData.runningLine?.fontFamily}
+        textStyle={headerData.runningLine?.textStyle}
+        lineHeight={headerData.runningLine?.lineHeight}
+        padding={headerData.runningLine?.padding}
       />
       <AppBar 
         position="sticky" 

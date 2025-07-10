@@ -850,7 +850,7 @@ const HeaderEditor = ({
                           Скорость движения (секунды)
                         </Typography>
                         <Slider
-                          value={headerData.runningLine?.speed || 35}
+                          value={headerData.runningLine?.speed || 25}
                           onChange={(e, value) => onHeaderChange({
                             ...headerData,
                             runningLine: {
@@ -863,7 +863,8 @@ const HeaderEditor = ({
                           step={5}
                           marks={[
                             { value: 10, label: '10с' },
-                            { value: 35, label: '35с' },
+                            { value: 25, label: '25с' },
+                            { value: 50, label: '50с' },
                             { value: 100, label: '100с' }
                           ]}
                           valueLabelDisplay="auto"
@@ -876,7 +877,7 @@ const HeaderEditor = ({
                       <FormControl fullWidth>
                         <InputLabel>Размер шрифта</InputLabel>
                         <Select
-                          value={headerData.runningLine?.fontSize || '14px'}
+                          value={headerData.runningLine?.fontSize || '24px'}
                           onChange={(e) => onHeaderChange({
                             ...headerData,
                             runningLine: {
@@ -891,6 +892,8 @@ const HeaderEditor = ({
                           <MenuItem value="16px">16px - Средний</MenuItem>
                           <MenuItem value="18px">18px - Большой</MenuItem>
                           <MenuItem value="20px">20px - Очень большой</MenuItem>
+                          <MenuItem value="22px">22px - Крупный</MenuItem>
+                          <MenuItem value="24px">24px - Гигантский</MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>
@@ -951,11 +954,11 @@ const HeaderEditor = ({
                       </Box>
                     </Grid>
                     
-                    <Grid item xs={12}>
+                    <Grid item xs={12} sm={6}>
                       <FormControl fullWidth>
                         <InputLabel>Начертание шрифта</InputLabel>
                         <Select
-                          value={headerData.runningLine?.fontWeight || 'normal'}
+                          value={headerData.runningLine?.fontWeight || 'bold'}
                           onChange={(e) => onHeaderChange({
                             ...headerData,
                             runningLine: {
@@ -968,8 +971,140 @@ const HeaderEditor = ({
                           <MenuItem value="normal">Обычный</MenuItem>
                           <MenuItem value="bold">Жирный</MenuItem>
                           <MenuItem value="lighter">Светлый</MenuItem>
+                          <MenuItem value="600">Полужирный</MenuItem>
+                          <MenuItem value="800">Очень жирный</MenuItem>
                         </Select>
                       </FormControl>
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Семейство шрифтов</InputLabel>
+                        <Select
+                          value={headerData.runningLine?.fontFamily || "'Comic Sans MS', cursive"}
+                          onChange={(e) => onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              fontFamily: e.target.value
+                            }
+                          })}
+                          label="Семейство шрифтов"
+                        >
+                          <MenuItem value="system-ui">Системный (рекомендуется)</MenuItem>
+                          <MenuItem value="Arial, sans-serif">Arial - Классический</MenuItem>
+                          <MenuItem value="'Helvetica Neue', sans-serif">Helvetica - Элегантный</MenuItem>
+                          <MenuItem value="'Times New Roman', serif">Times - Строгий</MenuItem>
+                          <MenuItem value="'Courier New', monospace">Courier - Технический</MenuItem>
+                          <MenuItem value="'Comic Sans MS', cursive">Comic Sans - Дружелюбный</MenuItem>
+                          <MenuItem value="Impact, sans-serif">Impact - Мощный</MenuItem>
+                          <MenuItem value="'Brush Script MT', cursive">Brush Script - Художественный</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    
+                    <Grid item xs={12}>
+                      <FormControl fullWidth>
+                        <InputLabel>Стиль текста</InputLabel>
+                        <Select
+                          value={headerData.runningLine?.textStyle || '3d'}
+                          onChange={(e) => onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              textStyle: e.target.value
+                            }
+                          })}
+                          label="Стиль текста"
+                        >
+                          <MenuItem value="normal">Обычный</MenuItem>
+                          <MenuItem value="shadow">С тенью</MenuItem>
+                          <MenuItem value="outline">С обводкой</MenuItem>
+                          <MenuItem value="glow">Светящийся</MenuItem>
+                          <MenuItem value="3d">3D эффект (умный)</MenuItem>
+                          <MenuItem value="3d-classic">3D классический</MenuItem>
+                          <MenuItem value="3d-bold">3D жирный</MenuItem>
+                          <MenuItem value="3d-neon">3D неоновый</MenuItem>
+                          <MenuItem value="gradient">Градиентный</MenuItem>
+                        </Select>
+                      </FormControl>
+                      {(headerData.runningLine?.textStyle === '3d' || 
+                        headerData.runningLine?.textStyle === '3d-classic' || 
+                        headerData.runningLine?.textStyle === '3d-bold' || 
+                        headerData.runningLine?.textStyle === '3d-neon') && (
+                        <Box sx={{ p: 2, mt: 1, bgcolor: '#e8f5e8', borderRadius: 1, border: '1px solid #4caf50' }}>
+                          <Typography variant="body2" sx={{ color: '#2e7d32', fontWeight: 'bold' }}>
+                            💡 Рекомендации по выбору 3D эффекта:
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#2e7d32', mt: 1 }}>
+                            • <strong>3D умный</strong> - автоматически подбирает цвета для любого фона
+                            <br />
+                            • <strong>3D классический</strong> - серая тень, подходит для светлых фонов
+                            <br />
+                            • <strong>3D жирный</strong> - контрастная обводка, для ярких цветов
+                            <br />
+                            • <strong>3D неоновый</strong> - свечение + тень, для темных фонов
+                          </Typography>
+                        </Box>
+                      )}
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6}>
+                      <Box>
+                        <Typography variant="body2" sx={{ mb: 1, color: '#e65100' }}>
+                          Высота строки
+                        </Typography>
+                        <Slider
+                          value={parseFloat(headerData.runningLine?.lineHeight || '1.2')}
+                          onChange={(e, value) => onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              lineHeight: value.toString()
+                            }
+                          })}
+                          min={1.0}
+                          max={2.0}
+                          step={0.1}
+                          marks={[
+                            { value: 1.0, label: '1.0' },
+                            { value: 1.2, label: '1.2' },
+                            { value: 1.5, label: '1.5' },
+                            { value: 2.0, label: '2.0' }
+                          ]}
+                          valueLabelDisplay="auto"
+                          sx={{ color: '#e65100' }}
+                        />
+                      </Box>
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6}>
+                      <Box>
+                        <Typography variant="body2" sx={{ mb: 1, color: '#e65100' }}>
+                          Отступы (padding)
+                        </Typography>
+                        <Slider
+                          value={parseInt(headerData.runningLine?.padding || '6')}
+                          onChange={(e, value) => onHeaderChange({
+                            ...headerData,
+                            runningLine: {
+                              ...headerData.runningLine,
+                              padding: value.toString()
+                            }
+                          })}
+                          min={4}
+                          max={20}
+                          step={1}
+                          marks={[
+                            { value: 4, label: '4px' },
+                            { value: 8, label: '8px' },
+                            { value: 12, label: '12px' },
+                            { value: 20, label: '20px' }
+                          ]}
+                          valueLabelDisplay="auto"
+                          sx={{ color: '#e65100' }}
+                        />
+                      </Box>
                     </Grid>
                   </>
                 )}

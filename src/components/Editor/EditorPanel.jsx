@@ -1299,11 +1299,15 @@ const EditorPanel = ({
     runningLine: {
       enabled: false,
       text: '',
-      speed: 35,
+      speed: 10,
       backgroundColor: '#1976d2',
       textColor: '#ffffff',
-      fontSize: '14px',
-      fontWeight: 'normal',
+      fontSize: '20px',
+      fontWeight: 'bold',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      textStyle: 'normal',
+      lineHeight: '1.2',
+      padding: '4',
       syncWithContacts: true
     }
   },
@@ -1974,11 +1978,7 @@ const EditorPanel = ({
     <div class="running-line" style="
       background-color: ${data.headerData.runningLine.backgroundColor || '#1976d2'};
     ">
-      <div class="running-line-text" style="
-        color: ${data.headerData.runningLine.textColor || '#ffffff'};
-        font-size: ${data.headerData.runningLine.fontSize || '14px'};
-        font-weight: ${data.headerData.runningLine.fontWeight || 'normal'};
-      ">${data.headerData.runningLine.text}</div>
+      <div class="running-line-text">${data.headerData.runningLine.text}</div>
     </div>
   </div>
   ` : ''}
@@ -3121,8 +3121,131 @@ const EditorPanel = ({
 </html>`;
   };
 
+  // Генерация стилей для бегущей строки
+  const getRunningLineTextStyles = (runningLineData) => {
+    if (!runningLineData) return '';
+    
+    const { textStyle, textColor, backgroundColor } = runningLineData;
+    
+    const adjustColor = (color, amount) => {
+      const usePound = color[0] === '#';
+      const col = usePound ? color.slice(1) : color;
+      const num = parseInt(col, 16);
+      let r = (num >> 16) + amount;
+      let g = (num >> 8 & 0x00FF) + amount;
+      let b = (num & 0x0000FF) + amount;
+      r = r > 255 ? 255 : r < 0 ? 0 : r;
+      g = g > 255 ? 255 : g < 0 ? 0 : g;
+      b = b > 255 ? 255 : b < 0 ? 0 : b;
+      return (usePound ? '#' : '') + (r << 16 | g << 8 | b).toString(16).padStart(6, '0');
+    };
+
+    // Функция для получения яркости цвета (0-255)
+    const getBrightness = (color) => {
+      const usePound = color[0] === '#';
+      const col = usePound ? color.slice(1) : color;
+      const num = parseInt(col, 16);
+      const r = (num >> 16);
+      const g = (num >> 8 & 0x00FF);
+      const b = (num & 0x0000FF);
+      return (r * 299 + g * 587 + b * 114) / 1000;
+    };
+
+    // Функция для создания контрастного цвета тени для 3D эффекта
+    const get3DShadowColor = (textColor, backgroundColor) => {
+      const textBrightness = getBrightness(textColor);
+      const bgBrightness = getBrightness(backgroundColor);
+      
+      // Если текст светлый, делаем тень темнее
+      if (textBrightness > 128) {
+        return adjustColor(textColor, -80); // Темнее
+      } else {
+        // Если текст темный, делаем тень светлее
+        return adjustColor(textColor, 60); // Светлее
+      }
+    };
+
+    // Функция для создания контрастной обводки
+    const getContrastOutline = (textColor, backgroundColor) => {
+      const textBrightness = getBrightness(textColor);
+      const bgBrightness = getBrightness(backgroundColor);
+      
+      // Если разница яркости небольшая, используем черную или белую обводку
+      if (Math.abs(textBrightness - bgBrightness) < 100) {
+        return textBrightness > 128 ? '#000000' : '#ffffff';
+      }
+      
+      // Иначе используем противоположный цвет
+      return textBrightness > bgBrightness ? '#000000' : '#ffffff';
+    };
+    
+    switch (textStyle) {
+      case 'shadow':
+        return 'text-shadow: 2px 2px 4px rgba(0,0,0,0.7);';
+      case 'outline':
+        const outlineColor = getContrastOutline(textColor, backgroundColor);
+        return `text-shadow: 
+          -1px -1px 0 ${outlineColor},
+          1px -1px 0 ${outlineColor},
+          -1px 1px 0 ${outlineColor},
+          1px 1px 0 ${outlineColor};`;
+      case 'glow':
+        return `
+          text-shadow: 0 0 10px ${textColor}, 0 0 20px ${textColor}, 0 0 30px ${textColor};
+          filter: brightness(1.1);
+        `;
+      case '3d':
+        const shadowColor = get3DShadowColor(textColor, backgroundColor);
+        const outlineColor3d = getContrastOutline(textColor, backgroundColor);
+        return `text-shadow: 
+          -1px -1px 0 ${outlineColor3d},
+          1px -1px 0 ${outlineColor3d},
+          -1px 1px 0 ${outlineColor3d},
+          1px 1px 0 ${outlineColor3d},
+          1px 1px 0 ${shadowColor},
+          2px 2px 0 ${shadowColor},
+          3px 3px 0 ${shadowColor},
+          4px 4px 0 ${shadowColor},
+          5px 5px 0 ${shadowColor};`;
+      case '3d-classic':
+        return `text-shadow: 
+          1px 1px 0 #ccc,
+          2px 2px 0 #ccc,
+          3px 3px 0 #ccc,
+          4px 4px 0 #ccc,
+          5px 5px 0 #ccc;`;
+      case '3d-bold':
+        const boldShadow = adjustColor(textColor, -100);
+        return `text-shadow: 
+          -2px -2px 0 #000,
+          2px -2px 0 #000,
+          -2px 2px 0 #000,
+          2px 2px 0 #000,
+          2px 2px 0 ${boldShadow},
+          4px 4px 0 ${boldShadow},
+          6px 6px 0 ${boldShadow};`;
+      case '3d-neon':
+        return `text-shadow: 
+          0 0 5px ${textColor},
+          0 0 10px ${textColor},
+          1px 1px 0 ${adjustColor(textColor, -50)},
+          2px 2px 0 ${adjustColor(textColor, -50)},
+          3px 3px 0 ${adjustColor(textColor, -50)};`;
+      case 'gradient':
+        return `
+          background: linear-gradient(45deg, ${textColor}, ${adjustColor(textColor, 50)});
+          background-clip: text;
+          -webkit-background-clip: text;
+          color: transparent;
+          text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        `;
+      default:
+        return '';
+    }
+  };
+
   const generateCSS = (data = {}) => {
-    const runningLineSpeed = data?.headerData?.runningLine?.speed || 35;
+    const runningLineSpeed = data?.headerData?.runningLine?.speed || 10;
     return `
       /* Base styles */
       * {
@@ -3325,7 +3448,7 @@ const EditorPanel = ({
         z-index: 1200;
         overflow: hidden;
         height: auto;
-        min-height: 35px;
+        min-height: ${parseInt(data?.headerData?.runningLine?.padding || '6') * 4 + 20}px;
         display: flex;
         align-items: center;
       }
@@ -3338,8 +3461,8 @@ const EditorPanel = ({
         white-space: nowrap;
         display: flex;
         align-items: center;
-        min-height: 35px;
-        padding: 8px 0;
+        min-height: ${parseInt(data?.headerData?.runningLine?.padding || '6') * 4 + 20}px;
+        padding: ${data?.headerData?.runningLine?.padding || '6'}px 0;
       }
 
       .running-line-text {
@@ -3350,12 +3473,22 @@ const EditorPanel = ({
         animation-duration: ${runningLineSpeed}s;
         white-space: nowrap;
         padding-left: 100%;
-        font-size: 14px;
-        line-height: 1.2;
+        font-size: ${data?.headerData?.runningLine?.fontSize || '20px'};
+        font-weight: ${data?.headerData?.runningLine?.fontWeight || 'bold'};
+        font-family: ${data?.headerData?.runningLine?.fontFamily || 'system-ui, -apple-system, sans-serif'};
+        line-height: ${data?.headerData?.runningLine?.lineHeight || '1.2'};
+        color: ${data?.headerData?.runningLine?.textColor || '#ffffff'};
+        padding: ${data?.headerData?.runningLine?.padding || '4'}px 0;
+        transition: all 0.3s ease;
+        ${getRunningLineTextStyles(data?.headerData?.runningLine)}
       }
 
       .running-line-container:hover .running-line-text {
         animation-play-state: paused !important;
+      }
+      
+      .running-line-text:hover {
+        ${data?.headerData?.runningLine?.textStyle === 'glow' || data?.headerData?.runningLine?.textStyle === '3d-neon' ? 'transform: scale(1.02); filter: brightness(1.2);' : ''}
       }
 
       @keyframes moveText {
@@ -3370,38 +3503,40 @@ const EditorPanel = ({
       /* Adaptive styles for running line */
       @media (max-width: 768px) {
         .running-line-container {
-          min-height: 30px;
+          min-height: ${Math.max(parseInt(data?.headerData?.runningLine?.padding || '4') * 3 + 18, 28)}px;
         }
         
         .running-line {
-          min-height: 30px;
-          padding: 6px 0;
+          min-height: ${Math.max(parseInt(data?.headerData?.runningLine?.padding || '4') * 3 + 18, 28)}px;
+          padding: ${Math.max(parseInt(data?.headerData?.runningLine?.padding || '4') - 2, 2)}px 0;
         }
         
         .running-line-text {
-          font-size: 12px;
+          font-size: ${Math.max(parseInt(data?.headerData?.runningLine?.fontSize || '20') - 2, 12)}px;
+          animation-duration: ${Math.max(runningLineSpeed * 0.9, 12)}s !important;
         }
       }
 
       @media (max-width: 480px) {
         .running-line-container {
-          min-height: 28px;
+          min-height: ${Math.max(parseInt(data?.headerData?.runningLine?.padding || '4') * 2 + 16, 26)}px;
         }
         
         .running-line {
-          min-height: 28px;
-          padding: 4px 0;
+          min-height: ${Math.max(parseInt(data?.headerData?.runningLine?.padding || '4') * 2 + 16, 26)}px;
+          padding: ${Math.max(parseInt(data?.headerData?.runningLine?.padding || '4') - 4, 1)}px 0;
         }
         
         .running-line-text {
-          font-size: 11px;
+          font-size: ${Math.max(parseInt(data?.headerData?.runningLine?.fontSize || '20') - 4, 10)}px;
+          animation-duration: ${Math.max(runningLineSpeed * 0.8, 10)}s !important;
         }
       }
 
       /* Other styles */
       header {
         position: fixed;
-        top: 35px;
+        top: ${parseInt(data?.headerData?.runningLine?.padding || '4') * 4 + 20}px;
         left: 0;
         right: 0;
         z-index: 1000;
@@ -3491,7 +3626,7 @@ const EditorPanel = ({
 
       @media (max-width: 768px) {
         header {
-          top: 30px;
+          top: ${Math.max(parseInt(data?.headerData?.runningLine?.padding || '4') * 3 + 18, 28)}px;
         }
         
         .menu-toggle {
@@ -3575,18 +3710,18 @@ const EditorPanel = ({
         margin: 0;
         padding: 0;
         width: 100%;
-        padding-top: 100px;
+                padding-top: ${data.headerData.runningLine?.enabled ? `${parseInt(data?.headerData?.runningLine?.padding || '4') * 4 + 90}px` : '100px'};
       }
-      
+
       @media (max-width: 768px) {
         body {
-          padding-top: 95px;
+          padding-top: ${data.headerData.runningLine?.enabled ? `${Math.max(parseInt(data?.headerData?.runningLine?.padding || '4') * 3 + 18, 28) + 75}px` : '95px'};
         }
       }
-      
+
       @media (max-width: 480px) {
         body {
-          padding-top: 90px;
+          padding-top: ${data.headerData.runningLine?.enabled ? `${Math.max(parseInt(data?.headerData?.runningLine?.padding || '4') * 2 + 16, 26) + 70}px` : '90px'};
         }
       }
       
@@ -4839,7 +4974,21 @@ const EditorPanel = ({
           description: headerData.description || 'Our site offers the best solutions',
           menuItems: headerData.menuItems || [],
           siteBackgroundImage: headerData.siteBackgroundType === 'image' ? 'assets/images/fon.jpg' : '',
-          language: headerData.language || 'ru'
+          language: headerData.language || 'ru',
+          runningLine: {
+            ...headerData.runningLine,
+            enabled: headerData.runningLine?.enabled || false,
+            text: headerData.runningLine?.text || '',
+            speed: headerData.runningLine?.speed || 10,
+            backgroundColor: headerData.runningLine?.backgroundColor || '#1976d2',
+            textColor: headerData.runningLine?.textColor || '#ffffff',
+            fontSize: headerData.runningLine?.fontSize || '20px',
+            fontWeight: headerData.runningLine?.fontWeight || 'bold',
+            fontFamily: headerData.runningLine?.fontFamily || 'system-ui, -apple-system, sans-serif',
+            textStyle: headerData.runningLine?.textStyle || 'normal',
+            lineHeight: headerData.runningLine?.lineHeight || '1.2',
+            padding: headerData.runningLine?.padding || '4'
+          }
         },
         heroData: {
           ...heroData,
@@ -5589,7 +5738,21 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
           description: headerData.description || 'Наш сайт предлагает лучшие решения',
           menuItems: headerData.menuItems || [],
           siteBackgroundImage: headerData.siteBackgroundType === 'image' ? 'assets/images/fon.jpg' : '',
-          language: headerData.language || 'ru'
+          language: headerData.language || 'ru',
+          runningLine: {
+            ...headerData.runningLine,
+            enabled: headerData.runningLine?.enabled || false,
+            text: headerData.runningLine?.text || '',
+            speed: headerData.runningLine?.speed || 10,
+            backgroundColor: headerData.runningLine?.backgroundColor || '#1976d2',
+            textColor: headerData.runningLine?.textColor || '#ffffff',
+            fontSize: headerData.runningLine?.fontSize || '20px',
+            fontWeight: headerData.runningLine?.fontWeight || 'bold',
+            fontFamily: headerData.runningLine?.fontFamily || 'system-ui, -apple-system, sans-serif',
+            textStyle: headerData.runningLine?.textStyle || 'normal',
+            lineHeight: headerData.runningLine?.lineHeight || '1.2',
+            padding: headerData.runningLine?.padding || '4'
+          }
         },
         heroData: {
           ...heroData,
@@ -6198,7 +6361,21 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
         description: data.headerData.description || 'Our site offers the best solutions',
         menuItems: data.headerData.menuItems || [],
         siteBackgroundImage: data.headerData.siteBackgroundType === 'image' ? 'assets/images/fon.jpg' : '',
-        language: data.headerData.language || 'en'
+        language: data.headerData.language || 'en',
+        runningLine: {
+          ...data.headerData.runningLine,
+          enabled: data.headerData.runningLine?.enabled || false,
+          text: data.headerData.runningLine?.text || '',
+          speed: data.headerData.runningLine?.speed || 10,
+          backgroundColor: data.headerData.runningLine?.backgroundColor || '#1976d2',
+          textColor: data.headerData.runningLine?.textColor || '#ffffff',
+          fontSize: data.headerData.runningLine?.fontSize || '20px',
+          fontWeight: data.headerData.runningLine?.fontWeight || 'bold',
+          fontFamily: data.headerData.runningLine?.fontFamily || 'system-ui, -apple-system, sans-serif',
+          textStyle: data.headerData.runningLine?.textStyle || 'normal',
+          lineHeight: data.headerData.runningLine?.lineHeight || '1.2',
+          padding: data.headerData.runningLine?.padding || '4'
+        }
       },
       heroData: data.heroData,
       sectionsData: data.sectionsData,
@@ -6562,7 +6739,21 @@ ${data.liveChatData?.enabled ? generateLiveChatHTML(data.headerData.siteName || 
           description: headerData.description || 'Наш сайт предлагает лучшие решения',
           menuItems: headerData.menuItems || [],
           siteBackgroundImage: headerData.siteBackgroundType === 'image' ? 'assets/images/hero/fon.jpg' : '',
-          language: headerData.language || 'ru'
+          language: headerData.language || 'ru',
+          runningLine: {
+            ...headerData.runningLine,
+            enabled: headerData.runningLine?.enabled || false,
+            text: headerData.runningLine?.text || '',
+            speed: headerData.runningLine?.speed || 10,
+            backgroundColor: headerData.runningLine?.backgroundColor || '#1976d2',
+            textColor: headerData.runningLine?.textColor || '#ffffff',
+            fontSize: headerData.runningLine?.fontSize || '20px',
+            fontWeight: headerData.runningLine?.fontWeight || 'bold',
+            fontFamily: headerData.runningLine?.fontFamily || 'system-ui, -apple-system, sans-serif',
+            textStyle: headerData.runningLine?.textStyle || 'normal',
+            lineHeight: headerData.runningLine?.lineHeight || '1.2',
+            padding: headerData.runningLine?.padding || '4'
+          }
         },
         heroData: {
           ...heroData,
