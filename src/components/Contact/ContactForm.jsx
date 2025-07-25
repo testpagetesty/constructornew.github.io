@@ -96,7 +96,7 @@ const ContactForm = ({ customStyles = {} }) => {
 
   return (
     <form 
-      action="https://formspree.io/f/mblyqyyj" 
+      action="https://formspree.io/f/mqalqbeo" 
       method="POST"
       onSubmit={handleSubmit}
       target="_self"
