@@ -30,6 +30,7 @@ export const WEBSITE_THEMES = {
   BEAUTY: 'Салон красоты',
   AUTO: 'Автосервис',
   RETAIL: 'Магазин/Торговля',
+  TELECOM_UAE: 'Телеком-оператор в ОАЭ',
   CUSTOM: 'Другое'
 };
 

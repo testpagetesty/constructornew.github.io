@@ -1282,7 +1282,6 @@ const handleReorderImages = (sectionsData, sectionId, startIndex, endIndex) => {
     }
   };
 };
-
 const EditorPanel = ({
   headerData = {
     siteName: 'My Site',

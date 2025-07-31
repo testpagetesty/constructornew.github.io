@@ -1093,6 +1093,21 @@ const AiParser = ({
 
 ВНИМАНИЕ: Отсутствие разделителя "=== КОНЕЦ РАЗДЕЛА ===" приведет к ошибке обработки контента!\n\n`;
 
+    // Специальная обработка для телеком-оператора в ОАЭ
+    if (globalSettings.theme === 'TELECOM_UAE') {
+      sectionsPrompt += `СПЕЦИАЛЬНЫЕ ТРЕБОВАНИЯ ДЛЯ ТЕЛЕКОМ-ОПЕРАТОРА В ОАЭ:\n`;
+      sectionsPrompt += `- Фокус на mobile packages in UAE\n`;
+      sectionsPrompt += `- 5G Mobile & Internet Plans in UAE for Video Calls with Family\n`;
+      sectionsPrompt += `- Recharge Mobile & Internet in UAE. Top Up Mobile Plans\n`;
+      sectionsPrompt += `- Quick Mobile & Internet Packages. Easy to Use\n`;
+      sectionsPrompt += `- Home Plans: WiFi & TV\n`;
+      sectionsPrompt += `- Smart & Simple, Easy to Use mobile plans\n`;
+      sectionsPrompt += `- mobile lines uae, mobile plans 5g for video calls\n`;
+      sectionsPrompt += `- 5g mobile plans for video calls in uae\n`;
+      sectionsPrompt += `\nЗАПРЕЩЕННЫЕ СЛОВА (НЕ ИСПОЛЬЗОВАТЬ): best, pay, bill, payment, service, gambling, purchase, application, download, installation, software, money, payment gateway, tariff payment, casino, murder, budget, vignette, bank\n`;
+      sectionsPrompt += `\nВАЖНО: Избегайте любых упоминаний о платежах, банковских операциях, казино и других запрещенных темах.\n\n`;
+    }
+
     // Добавляем Hero секцию в начало
     sectionsPrompt += `=== РАЗДЕЛ: HERO ===
 1. Первая строка - название сайта (1-2 слова, легко запоминающееся)
@@ -1474,6 +1489,21 @@ info@company.com
 
 `;
 
+    // Специальная обработка для телеком-оператора в ОАЭ
+    if (globalSettings.theme === 'TELECOM_UAE') {
+      sectionsPrompt += `СПЕЦИАЛЬНЫЕ ТРЕБОВАНИЯ ДЛЯ ТЕЛЕКОМ-ОПЕРАТОРА В ОАЭ:\n`;
+      sectionsPrompt += `- Фокус на mobile packages in UAE\n`;
+      sectionsPrompt += `- 5G Mobile & Internet Plans in UAE for Video Calls with Family\n`;
+      sectionsPrompt += `- Recharge Mobile & Internet in UAE. Top Up Mobile Plans\n`;
+      sectionsPrompt += `- Quick Mobile & Internet Packages. Easy to Use\n`;
+      sectionsPrompt += `- Home Plans: WiFi & TV\n`;
+      sectionsPrompt += `- Smart & Simple, Easy to Use mobile plans\n`;
+      sectionsPrompt += `- mobile lines uae, mobile plans 5g for video calls\n`;
+      sectionsPrompt += `- 5g mobile plans for video calls in uae\n`;
+      sectionsPrompt += `\nЗАПРЕЩЕННЫЕ СЛОВА (НЕ ИСПОЛЬЗОВАТЬ): best, pay, bill, payment, service, gambling, purchase, application, download, installation, software, money, payment gateway, tariff payment, casino, murder, budget, vignette, bank\n`;
+      sectionsPrompt += `\nВАЖНО: Избегайте любых упоминаний о платежах, банковских операциях, казино и других запрещенных темах.\n\n`;
+    }
+
     // Добавляем Hero секцию
     sectionsPrompt += `=== РАЗДЕЛ: HERO ===
 1. Название сайта (1-2 слова)
@@ -1755,6 +1785,21 @@ info@company.com
     enhancedPrompt += `Стиль контента: ${CONTENT_STYLES[globalSettings.contentStyle]}.\n`;
     enhancedPrompt += `ВАЖНО: Не используйте никакого форматирования (Markdown, HTML). Не используйте символы **, ---, ###, _ или другие специальные символы для форматирования. Выдавайте чистый текст.\n`;
 
+    // Специальная обработка для телеком-оператора в ОАЭ
+    if (globalSettings.theme === 'TELECOM_UAE') {
+      enhancedPrompt += `\nСПЕЦИАЛЬНЫЕ ТРЕБОВАНИЯ ДЛЯ ТЕЛЕКОМ-ОПЕРАТОРА В ОАЭ:\n`;
+      enhancedPrompt += `- Фокус на mobile packages in UAE\n`;
+      enhancedPrompt += `- 5G Mobile & Internet Plans in UAE for Video Calls with Family\n`;
+      enhancedPrompt += `- Recharge Mobile & Internet in UAE. Top Up Mobile Plans\n`;
+      enhancedPrompt += `- Quick Mobile & Internet Packages. Easy to Use\n`;
+      enhancedPrompt += `- Home Plans: WiFi & TV\n`;
+      enhancedPrompt += `- Smart & Simple, Easy to Use mobile plans\n`;
+      enhancedPrompt += `- mobile lines uae, mobile plans 5g for video calls\n`;
+      enhancedPrompt += `- 5g mobile plans for video calls in uae\n`;
+      enhancedPrompt += `\nЗАПРЕЩЕННЫЕ СЛОВА (НЕ ИСПОЛЬЗОВАТЬ): best, pay, bill, payment, service, gambling, purchase, application, download, installation, software, money, payment gateway, tariff payment, casino, murder, budget, vignette, bank\n`;
+      enhancedPrompt += `\nВАЖНО: Избегайте любых упоминаний о платежах, банковских операциях, казино и других запрещенных темах.\n`;
+    }
+
     if (globalSettings.additionalKeywords) {
       enhancedPrompt += `Ключевые особенности: ${globalSettings.additionalKeywords}\n`;
     }
@@ -1785,6 +1830,21 @@ info@company.com
       enhancedPrompt += `Код языка: ${languageCode || 'не указан'}\n`;
       enhancedPrompt += `ВАЖНО: Весь текст документов ОБЯЗАТЕЛЬНО должен быть только на ${language}.\n`;
       enhancedPrompt += `Стиль: ${CONTENT_STYLES[globalSettings.contentStyle]}.\n\n`;
+      
+      // Специальная обработка для телеком-оператора в ОАЭ
+      if (globalSettings.theme === 'TELECOM_UAE') {
+        enhancedPrompt += `СПЕЦИАЛЬНЫЕ ТРЕБОВАНИЯ ДЛЯ ТЕЛЕКОМ-ОПЕРАТОРА В ОАЭ:\n`;
+        enhancedPrompt += `- Фокус на mobile packages in UAE\n`;
+        enhancedPrompt += `- 5G Mobile & Internet Plans in UAE for Video Calls with Family\n`;
+        enhancedPrompt += `- Recharge Mobile & Internet in UAE. Top Up Mobile Plans\n`;
+        enhancedPrompt += `- Quick Mobile & Internet Packages. Easy to Use\n`;
+        enhancedPrompt += `- Home Plans: WiFi & TV\n`;
+        enhancedPrompt += `- Smart & Simple, Easy to Use mobile plans\n`;
+        enhancedPrompt += `- mobile lines uae, mobile plans 5g for video calls\n`;
+        enhancedPrompt += `- 5g mobile plans for video calls in uae\n`;
+        enhancedPrompt += `\nЗАПРЕЩЕННЫЕ СЛОВА (НЕ ИСПОЛЬЗОВАТЬ): best, pay, bill, payment, service, gambling, purchase, application, download, installation, software, money, payment gateway, tariff payment, casino, murder, budget, vignette, bank\n`;
+        enhancedPrompt += `\nВАЖНО: Избегайте любых упоминаний о платежах, банковских операциях, казино и других запрещенных темах.\n\n`;
+      }
       
       if (globalSettings.customInstructions) {
         enhancedPrompt += `Дополнительные требования: ${globalSettings.customInstructions}\n\n`;
