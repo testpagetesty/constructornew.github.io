@@ -32,7 +32,9 @@ import {
   Slider,
   Switch,
   Radio,
-  RadioGroup
+  RadioGroup,
+  CircularProgress,
+  LinearProgress
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -48,6 +50,7 @@ import SiteStyleManager from '../SiteStyleSettings/SiteStyleManager';
 import * as parsers from './parsingFunctions';
 import { STYLE_PRESETS } from '../../utils/editorStylePresets';
 import { contactPresets } from '../../utils/contactPresets';
+import openaiService from '../../services/openaiService';
 import { headerPresets } from '../../utils/headerPresets';
 
 // Function to remove Markdown formatting
@@ -533,7 +536,7 @@ const WordRangeEditor = ({ section, ranges, onChange }) => {
 };
 
 // Добавляем компонент настройки промпта полного сайта
-const FullSitePromptSettings = ({ open, onClose, onSave, initialSettings }) => {
+const FullSitePromptSettings = ({ open, onClose, onSave, onCopyOnly, initialSettings, isGenerating, generationProgress }) => {
   const [settings, setSettings] = useState(initialSettings);
   const [promptType, setPromptType] = useState('optimized');
 
@@ -570,9 +573,14 @@ const FullSitePromptSettings = ({ open, onClose, onSave, initialSettings }) => {
     }));
   };
 
-  const handleSave = () => {
+  const handleSaveWithAI = () => {
     onSave(settings, promptType);
-    onClose();
+    // Не закрываем диалог сразу, ждем завершения генерации AI
+  };
+
+  const handleCopyOnly = () => {
+    onCopyOnly(settings, promptType);
+    onClose(); // Закрываем диалог сразу при копировании
   };
 
   const sectionLabels = {
@@ -927,11 +935,47 @@ const FullSitePromptSettings = ({ open, onClose, onSave, initialSettings }) => {
           </>
         )}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Отмена</Button>
-        <Button onClick={handleSave} variant="contained" color="primary">
-          Применить настройки
-        </Button>
+      <DialogActions sx={{ flexDirection: 'column', gap: 1 }}>
+        {/* Индикатор прогресса генерации */}
+        {isGenerating && (
+          <Box sx={{ width: '100%', mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+              <CircularProgress size={20} sx={{ mr: 1 }} />
+              <Typography variant="body2" color="primary">
+                {generationProgress || 'Генерация контента...'}
+              </Typography>
+            </Box>
+            <LinearProgress sx={{ width: '100%' }} />
+          </Box>
+        )}
+        
+        {/* Кнопки */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: 1 }}>
+          <Button onClick={onClose} disabled={isGenerating}>
+            {isGenerating ? 'Генерация...' : 'Отмена'}
+          </Button>
+          
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button 
+              onClick={handleSaveWithAI} 
+              variant="contained" 
+              color="primary"
+              disabled={isGenerating}
+              startIcon={isGenerating ? <CircularProgress size={16} /> : null}
+            >
+              {isGenerating ? 'Генерация через AI...' : 'Сгенерировать через AI'}
+            </Button>
+            <Button 
+              onClick={handleCopyOnly} 
+              variant="outlined" 
+              color="secondary"
+              disabled={isGenerating}
+              startIcon={<ContentCopyIcon />}
+            >
+              Скопировать промпт
+            </Button>
+          </Box>
+        </Box>
       </DialogActions>
     </Dialog>
   );
@@ -985,6 +1029,57 @@ const AiParser = ({
   
   // Добавляем состояние для настроек промпта полного сайта
   const [showFullSiteSettings, setShowFullSiteSettings] = useState(false);
+  
+  // Добавляем состояния для OpenAI интеграции
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [aiGenerationProgress, setAiGenerationProgress] = useState('');
+  
+  // Функция для копирования промпта без отправки в OpenAI (старое поведение)
+  const handleCopyPromptOnly = (settings, promptType = 'full') => {
+    setFullSiteSettings(settings);
+    
+    // Автоматически выбираем соответствующий раздел в парсере
+    if (promptType === 'legal_only') {
+      setTargetSection('LEGAL');
+    } else if (promptType === 'optimized') {
+      setTargetSection('FULL_SITE');
+    } else {
+      setTargetSection('FULL_SITE');
+    }
+    
+    let finalPrompt = '';
+    
+    // Генерируем промпт в зависимости от типа
+    if (promptType === 'legal_only') {
+      finalPrompt = applyGlobalSettings(generateLegalDocumentsPrompt());
+    } else if (promptType === 'optimized') {
+      const optimizedPrompt = generateOptimizedFullSitePrompt(settings);
+      finalPrompt = applyGlobalSettings(optimizedPrompt);
+    } else {
+      const fullSitePrompt = generateFullSitePrompt(settings);
+      finalPrompt = applyGlobalSettings(fullSitePrompt);
+    }
+    
+    // Копируем промпт в буфер обмена
+    navigator.clipboard.writeText(finalPrompt)
+      .then(() => {
+        let successMessage = '';
+        if (promptType === 'legal_only') {
+          successMessage = 'Специализированный промпт для правовых документов скопирован в буфер обмена.';
+        } else if (promptType === 'optimized') {
+          successMessage = 'Оптимизированный промпт полного сайта (без правовых документов) скопирован в буфер обмена.';
+        } else {
+          successMessage = 'Полный промпт сайта скопирован в буфер обмена.';
+        }
+        
+        setParserMessage(successMessage);
+        handleClearText();
+      })
+      .catch(() => {
+        setParserMessage('Не удалось скопировать промпт.');
+      });
+  };
+
   const [fullSiteSettings, setFullSiteSettings] = useState({
     includedSections: {
       HERO: true, // Hero секция всегда включена
@@ -1367,24 +1462,91 @@ info@company.com
 
     let language;
     let languageCode = '';
+    let documentTitles = {};
     
     if (globalSettings.language === 'CUSTOM' && globalSettings.customLanguage) {
       languageCode = globalSettings.customLanguage;
       language = `языке с кодом ISO ${globalSettings.customLanguage}`;
+      documentTitles = {
+        privacy: `Политика конфиденциальности`,
+        terms: `Пользовательское соглашение`,
+        cookies: `Политика использования cookie`
+      };
     } else if (globalSettings.language) {
       const langObj = LANGUAGES.find(lang => lang.code === globalSettings.language);
       if (langObj) {
-        language = langObj.label.split(' - ')[0]; // Берем русское название до " - "
         const codeMatch = langObj.label.match(/\(([a-z]{2})\)/i);
         languageCode = codeMatch ? codeMatch[1].toLowerCase() : '';
+        
+        // Определяем язык и заголовки документов на этом языке
+        switch(languageCode) {
+          case 'en':
+            language = 'английском языке';
+            documentTitles = {
+              privacy: `Privacy Policy`,
+              terms: `Terms of Use`,
+              cookies: `Cookie Policy`
+            };
+            break;
+          case 'es':
+            language = 'испанском языке';
+            documentTitles = {
+              privacy: `Política de Privacidad`,
+              terms: `Términos de Uso`,
+              cookies: `Política de Cookies`
+            };
+            break;
+          case 'de':
+            language = 'немецком языке';
+            documentTitles = {
+              privacy: `Datenschutzrichtlinie`,
+              terms: `Nutzungsbedingungen`,
+              cookies: `Cookie-Richtlinie`
+            };
+            break;
+          case 'fr':
+            language = 'французском языке';
+            documentTitles = {
+              privacy: `Politique de Confidentialité`,
+              terms: `Conditions d'Utilisation`,
+              cookies: `Politique des Cookies`
+            };
+            break;
+          case 'it':
+            language = 'итальянском языке';
+            documentTitles = {
+              privacy: `Informativa sulla Privacy`,
+              terms: `Termini di Utilizzo`,
+              cookies: `Politica sui Cookie`
+            };
+            break;
+          default:
+            language = 'русском языке';
+            languageCode = 'ru';
+            documentTitles = {
+              privacy: `Политика конфиденциальности`,
+              terms: `Пользовательское соглашение`,
+              cookies: `Политика использования cookie`
+            };
+        }
       } else {
         language = 'русском языке';
         languageCode = 'ru';
+        documentTitles = {
+          privacy: `Политика конфиденциальности`,
+          terms: `Пользовательское соглашение`,
+          cookies: `Политика использования cookie`
+        };
       }
     } else {
       // Если язык не выбран, используем русский по умолчанию
       language = 'русском языке';
       languageCode = 'ru';
+      documentTitles = {
+        privacy: `Политика конфиденциальности`,
+        terms: `Пользовательское соглашение`,
+        cookies: `Политика использования cookie`
+      };
     }
 
     // Получаем информацию о выбранной стране
@@ -1396,17 +1558,22 @@ info@company.com
 
 КРИТИЧЕСКИ ВАЖНО:
 1. Весь текст документов ОБЯЗАТЕЛЬНО должен быть только на ${language}
-2. Каждый документ должен быть ПОЛНЫМ (1200-2000 слов)
-3. Документы должны соответствовать требованиям GDPR и быть универсальными для страны ${selectedCountry}
+2. Каждый документ должен быть ПОЛНЫМ (1500-2000 слов каждый)
+3. Документы должны соответствовать требованиям GDPR и быть адаптированными для страны ${selectedCountry}
+4. Документы должны быть профессиональными и юридически корректными
+5. Наши сайты не нарушают никаких законов и соответствуют международным стандартам
+6. Учитывать особенности законодательства страны ${selectedCountry}
 
 ФОРМАТ ДОКУМЕНТОВ:
 - Каждый документ начинается с заголовка в круглых скобках на отдельной строке
+- Заголовки документов: (${documentTitles.privacy}), (${documentTitles.terms}), (${documentTitles.cookies})
 - После заголовка сразу идет текст документа  
 - Между документами оставляйте ровно две пустые строки
+- Используйте четкую структуру с нумерованными разделами
 
 СОЗДАЙТЕ ТРИ ДОКУМЕНТА В СТРОГОМ ПОРЯДКЕ:
 
-1. ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ - должна включать разделы:
+1. ${documentTitles.privacy} (для страны ${selectedCountry}) - должна включать разделы НА ${language}:
    - Общие положения
    - Какую информацию мы собираем
    - Как мы используем информацию
@@ -1417,19 +1584,18 @@ info@company.com
    - Изменения в политике
    - Согласие пользователя
 
-2. ПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ - должно включать разделы:
+2. ${documentTitles.terms} (для страны ${selectedCountry}) - должно включать разделы НА ${language}:
    - Общие положения и термины
    - Права и обязанности пользователя
    - Права и обязанности администрации
    - Условия использования контента
    - Интеллектуальная собственность
    - Отказ от ответственности
-   - Регистрация и учетная запись
    - Безопасность и конфиденциальность
    - Порядок разрешения споров
    - Заключительные положения
 
-3. ПОЛИТИКА ИСПОЛЬЗОВАНИЯ COOKIE - должна включать разделы:
+3. ${documentTitles.cookies} (для страны ${selectedCountry}) - должна включать разделы НА ${language}:
    - Что такое файлы cookie
    - Типы файлов cookie
    - Цели использования cookie
@@ -1445,12 +1611,20 @@ info@company.com
 - НЕ добавлять комментарии после последнего документа
 - НЕ использовать форматирование Markdown или HTML
 - Ответ должен содержать ТОЛЬКО три документа
+- Документы должны быть адаптированы для законодательства страны ${selectedCountry}
+- Указать, что сайт соответствует международным стандартам и не нарушает законы
+- Учитывать особенности правовой системы ${selectedCountry}
+- ВСЕ названия разделов должны быть переведены на ${language}
+- ВАЖНО: Создайте все документы ИСКЛЮЧИТЕЛЬНО на ${language}
+- Каждый документ должен начинаться с заголовка в круглых скобках НА ${language}
+- СТРУКТУРА ДОКУМЕНТОВ: названия разделов должны быть на ${language}
 
 ФИНАЛЬНАЯ ПРОВЕРКА:
 1. Все документы написаны полностью на ${language}
 2. Каждый документ содержит все требуемые разделы
 3. Нет дополнительных комментариев после последнего документа
-4. Объем каждого документа 1200-2000 слов`;
+4. Объем каждого документа 1500-2000 слов
+5. Документы профессиональные и юридически корректные`;
   };
 
   // Улучшенная функция генерации промпта полного сайта (без правовых документов)
@@ -1693,16 +1867,30 @@ info@company.com
       return;
     }
     
-    const prompt = prompts[targetSection] || `Сгенерируйте для меня ${
-      targetSection === 'FEATURES' ? 'преимущества' : 
-      targetSection === 'ABOUT' ? 'информацию о' :
-      'раздел'} для сайта.`;
+    let finalPrompt = '';
     
-    const enhancedPrompt = applyGlobalSettings(prompt);
+    // Для правовых документов используем специализированный промпт
+    if (targetSection === 'LEGAL') {
+      finalPrompt = applyGlobalSettings(generateLegalDocumentsPrompt());
+    } else {
+      const prompt = prompts[targetSection] || `Сгенерируйте для меня ${
+        targetSection === 'FEATURES' ? 'преимущества' : 
+        targetSection === 'ABOUT' ? 'информацию о' :
+        'раздел'} для сайта.`;
+      
+      finalPrompt = applyGlobalSettings(prompt);
+    }
     
-    navigator.clipboard.writeText(enhancedPrompt)
+    navigator.clipboard.writeText(finalPrompt)
       .then(() => {
-        setParserMessage('Промпт с глобальными настройками скопирован в буфер обмена.');
+        let successMessage = '';
+        if (targetSection === 'LEGAL') {
+          successMessage = 'Специализированный промпт для правовых документов скопирован в буфер обмена.';
+        } else {
+          successMessage = 'Промпт с глобальными настройками скопирован в буфер обмена.';
+        }
+        
+        setParserMessage(successMessage);
         // Очищаем текстовое поле после копирования
         handleClearText();
       })
@@ -1711,37 +1899,98 @@ info@company.com
       });
   };
   
-  // Функция для обработки сохранения настроек промпта полного сайта
-  const handleFullSiteSettingsSave = (settings, promptType = 'full') => {
+  // Функция для обработки сохранения настроек промпта полного сайта с автоматической генерацией через OpenAI
+  const handleFullSiteSettingsSave = async (settings, promptType = 'full') => {
     setFullSiteSettings(settings);
+    
+    // Автоматически выбираем соответствующий раздел в парсере
+    if (promptType === 'legal_only') {
+      setTargetSection('LEGAL');
+    } else if (promptType === 'optimized') {
+      setTargetSection('FULL_SITE');
+    } else {
+      setTargetSection('FULL_SITE');
+    }
     
     let finalPrompt = '';
     
+    // Генерируем промпт в зависимости от типа
     if (promptType === 'legal_only') {
-      // Генерируем только промпт для правовых документов
       finalPrompt = applyGlobalSettings(generateLegalDocumentsPrompt());
-      setParserMessage('Специализированный промпт для правовых документов скопирован в буфер обмена.');
     } else if (promptType === 'optimized') {
-      // Генерируем оптимизированный промпт без правовых документов
       const optimizedPrompt = generateOptimizedFullSitePrompt(settings);
       finalPrompt = applyGlobalSettings(optimizedPrompt);
-      setParserMessage('Оптимизированный промпт полного сайта (без правовых документов) скопирован в буфер обмена.');
     } else {
-      // Оригинальный полный промпт (по умолчанию)
       const fullSitePrompt = generateFullSitePrompt(settings);
       finalPrompt = applyGlobalSettings(fullSitePrompt);
-      setParserMessage('Полный промпт сайта скопирован в буфер обмена.');
     }
     
-    // Копируем промпт в буфер обмена
-    navigator.clipboard.writeText(finalPrompt)
-      .then(() => {
-        // Очищаем текстовое поле после копирования
-        handleClearText();
-      })
-      .catch(() => {
-        setParserMessage('Не удалось скопировать промпт.');
+    // Запускаем автоматическую генерацию через OpenAI
+    try {
+      setIsGeneratingAI(true);
+      setAiGenerationProgress('Подготовка промпта...');
+      
+      // Небольшая задержка для UX
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setAiGenerationProgress('Отправка запроса к OpenAI...');
+      
+      // Определяем тип запроса для правильной конфигурации
+      const requestType = promptType === 'legal_only' ? 'LEGAL' : 'FULL_SITE';
+      
+      // Отправляем запрос к OpenAI с retry логикой
+      const generatedContent = await openaiService.sendRequest(finalPrompt, requestType);
+      
+      setAiGenerationProgress('Обработка ответа...');
+      
+      // Небольшая задержка перед отображением результата
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Автоматически заполняем текстовое поле сгенерированным контентом
+      setContent(generatedContent);
+      
+      // Показываем сообщение об успехе
+      let successMessage = '';
+      if (promptType === 'legal_only') {
+        successMessage = '✅ Правовые документы успешно сгенерированы через OpenAI!';
+      } else if (promptType === 'optimized') {
+        successMessage = '✅ Оптимизированный контент сайта успешно сгенерирован через OpenAI!';
+      } else {
+        successMessage = '✅ Полный контент сайта успешно сгенерирован через OpenAI!';
+      }
+      
+      setParserMessage(successMessage);
+      
+      // Также копируем промпт в буфер обмена для справки
+      navigator.clipboard.writeText(finalPrompt).catch(() => {
+        console.warn('Не удалось скопировать промпт в буфер обмена');
       });
+      
+      // Автоматически закрываем диалог через 2 секунды после успешной генерации
+      setTimeout(() => {
+        setShowFullSiteSettings(false);
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Ошибка генерации через OpenAI:', error);
+      
+      // В случае ошибки, показываем промпт и копируем его в буфер
+      setContent('');
+      setParserMessage(`❌ Ошибка OpenAI: ${error.message}. Промпт скопирован в буфер обмена для ручного использования.`);
+      
+      // Копируем промпт в буфер обмена как fallback
+      navigator.clipboard.writeText(finalPrompt)
+        .then(() => {
+          handleClearText();
+        })
+        .catch(() => {
+          setParserMessage('❌ Ошибка OpenAI и не удалось скопировать промпт.');
+        });
+        
+    } finally {
+      setIsGeneratingAI(false);
+      setAiGenerationProgress('');
+    }
   };
 
   // Функция для применения глобальных настроек к промпту
@@ -3460,7 +3709,10 @@ info@company.com
             open={showFullSiteSettings}
             onClose={() => setShowFullSiteSettings(false)}
             onSave={handleFullSiteSettingsSave}
+            onCopyOnly={handleCopyPromptOnly}
             initialSettings={fullSiteSettings}
+            isGenerating={isGeneratingAI}
+            generationProgress={aiGenerationProgress}
           />
             
           <Box sx={{ p: 2 }}>
@@ -3544,36 +3796,7 @@ info@company.com
                   </Button>
                 </span>
               </Tooltip>
-              {targetSection === 'LEGAL' && (
-                <Tooltip title="Скопировать оптимизированный промпт для правовых документов" arrow placement="top">
-                  <span>
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      onClick={() => {
-                        const legalPrompt = applyGlobalSettings(generateLegalDocumentsPrompt());
-                        navigator.clipboard.writeText(legalPrompt)
-                          .then(() => {
-                            setParserMessage('Оптимизированный промпт для правовых документов скопирован в буфер обмена.');
-                            handleClearText();
-                          })
-                          .catch(() => {
-                            setParserMessage('Не удалось скопировать промпт.');
-                          });
-                      }}
-                      startIcon={<ContentCopyIcon sx={{ fontSize: '0.9rem' }} />}
-                      sx={{
-                        background: 'linear-gradient(45deg, #ed6c02 30%, #ff9800 90%)',
-                        '&:hover': {
-                          background: 'linear-gradient(45deg, #e65100 30%, #f57c00 90%)'
-                        }
-                      }}
-                    >
-                      Промпт Legal
-                    </Button>
-                  </span>
-                </Tooltip>
-              )}
+
               </Box>
               
               <TextField
