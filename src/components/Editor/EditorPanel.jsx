@@ -3471,7 +3471,6 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         animation-iteration-count: infinite;
         animation-duration: ${runningLineSpeed}s;
         white-space: nowrap;
-        padding-left: 100%;
         font-size: ${data?.headerData?.runningLine?.fontSize || '20px'};
         font-weight: ${data?.headerData?.runningLine?.fontWeight || 'bold'};
         font-family: ${data?.headerData?.runningLine?.fontFamily || 'system-ui, -apple-system, sans-serif'};
@@ -3492,7 +3491,7 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
 
       @keyframes moveText {
         0% {
-          transform: translateX(0);
+          transform: translateX(100vw);
         }
         100% {
           transform: translateX(-100%);
