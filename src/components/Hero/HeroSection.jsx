@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, Container, useTheme } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 
@@ -32,6 +32,19 @@ const fadeAnimation = keyframes`
   }
 `;
 
+const pageOpenAnimation = keyframes`
+  from {
+    opacity: 0;
+    filter: blur(20px);
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: scale(1);
+  }
+`;
+
 const pulseAnimation = keyframes`
   0% {
     transform: scale(1);
@@ -47,7 +60,7 @@ const pulseAnimation = keyframes`
   }
 `;
 
-const HeroContainer = styled(Box)(({ theme }) => ({
+const HeroContainer = styled(Box)(({ theme, isPageLoaded }) => ({
   position: 'relative',
   width: '100%',
   minHeight: '500px',
@@ -55,6 +68,10 @@ const HeroContainer = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   overflow: 'hidden',
+  opacity: isPageLoaded ? 1 : 0,
+  filter: isPageLoaded ? 'blur(0px)' : 'blur(20px)',
+  transform: isPageLoaded ? 'scale(1)' : 'scale(0.95)',
+  transition: 'all 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
 }));
 
 const BackgroundLayer = styled(Box)(({ theme }) => ({
@@ -111,6 +128,16 @@ const HeroSection = ({
   videoControls = false
 }) => {
   const theme = useTheme();
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
+
+  useEffect(() => {
+    // Задержка для плавного появления страницы
+    const timer = setTimeout(() => {
+      setIsPageLoaded(true);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const getAnimation = () => {
     switch (animationType) {
@@ -172,7 +199,7 @@ const HeroSection = ({
   };
 
   return (
-    <HeroContainer>
+    <HeroContainer isPageLoaded={isPageLoaded}>
       <BackgroundLayer sx={getBackgroundStyle()} />
       
       {/* Видео фон */}
@@ -188,12 +215,34 @@ const HeroSection = ({
             objectFit: 'cover',
             zIndex: 1,
             filter: enableBlur ? `blur(${blurAmount}px)` : 'none',
+            // Полностью скрываем элементы управления видео
+            '&::-webkit-media-controls': { display: 'none !important' },
+            '&::-webkit-media-controls-panel': { display: 'none !important' },
+            '&::-webkit-media-controls-play-button': { display: 'none !important' },
+            '&::-webkit-media-controls-start-playback-button': { display: 'none !important' },
+            '&::-webkit-media-controls-timeline': { display: 'none !important' },
+            '&::-webkit-media-controls-current-time-display': { display: 'none !important' },
+            '&::-webkit-media-controls-time-remaining-display': { display: 'none !important' },
+            '&::-webkit-media-controls-mute-button': { display: 'none !important' },
+            '&::-webkit-media-controls-volume-slider': { display: 'none !important' },
+            '&::-webkit-media-controls-fullscreen-button': { display: 'none !important' },
+            '&::-moz-media-controls': { display: 'none !important' },
+            '&::-ms-media-controls': { display: 'none !important' },
+            // Дополнительные правила для полного скрытия
+            '&::-webkit-media-controls-enclosure': { display: 'none !important' },
+            '&::-webkit-media-controls-overlay-play-button': { display: 'none !important' },
+            '&::-webkit-media-controls-rewind-button': { display: 'none !important' },
+            '&::-webkit-media-controls-return-to-realtime-button': { display: 'none !important' },
+            '&::-webkit-media-controls-seek-back-button': { display: 'none !important' },
+            '&::-webkit-media-controls-seek-forward-button': { display: 'none !important' },
+            '&::-webkit-media-controls-picture-in-picture-button': { display: 'none !important' },
           }}
           autoPlay={videoAutoplay}
           loop={videoLoop}
           muted={videoMuted}
-          controls={videoControls}
+          controls={false}
           playsInline
+          preload="auto"
         >
           <source src={backgroundVideo} type="video/mp4" />
           <source src={backgroundVideo.replace('.mp4', '.webm')} type="video/webm" />

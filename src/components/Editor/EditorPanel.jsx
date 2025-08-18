@@ -2045,7 +2045,7 @@ const EditorPanel = ({
           autoplay="${data.heroData.videoAutoplay || true}"
           loop="${data.heroData.videoLoop || true}"
           muted="${data.heroData.videoMuted || true}"
-          controls="${data.heroData.videoControls || false}"
+          controls="false"
           playsinline
           preload="auto"
           id="heroVideo"
@@ -3895,6 +3895,41 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         padding: 0 2rem;
         position: relative;
         overflow: hidden;
+        animation: pageOpen 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        animation-delay: 0s;
+        opacity: 0;
+        /* Убираем рамку только с hero секции */
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+      }
+
+      /* Убираем рамки со всех элементов внутри hero */
+      .hero * {
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+      }
+
+      /* Максимальный приоритет для удаления рамок hero */
+      .hero,
+      .hero::before,
+      .hero::after,
+      .hero *,
+      .hero *::before,
+      .hero *::after {
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        -webkit-border: none !important;
+        -moz-border: none !important;
+        -webkit-box-shadow: none !important;
+        -moz-box-shadow: none !important;
+      }
+
+      /* Плавное появление фонового изображения */
+      .hero-bg-animation {
+        transition: opacity 0.8s ease-out;
       }
 
       .hero {
@@ -3912,18 +3947,28 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         background-position: center;
         background-repeat: no-repeat;
         z-index: -1;
-        animation: heroBackgroundZoom 15s ease-in-out infinite;
+        /* Плавная анимация без дублирования */
+        animation: heroBackgroundZoom 20s ease-out infinite;
+        animation-delay: 0s;
+        opacity: 1;
+        animation-fill-mode: forwards;
       }
 
       @keyframes heroBackgroundZoom {
         0% { 
           transform: scale(1);
+          opacity: 0;
+        }
+        20% {
+          opacity: 1;
         }
         50% { 
-          transform: scale(1.05);
+          transform: scale(1.02);
+          opacity: 1;
         }
         100% { 
           transform: scale(1);
+          opacity: 1;
         }
       }
 
@@ -3960,6 +4005,9 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         z-index: 2;
         position: relative;
         animation: slideUp 1s ease-out;
+        animation-delay: 0.8s;
+        opacity: 0;
+        animation-fill-mode: forwards;
       }
 
       @keyframes slideUp {
@@ -3970,6 +4018,19 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         to {
           transform: translateY(0);
           opacity: 1;
+        }
+      }
+
+      @keyframes pageOpen {
+        from {
+          opacity: 0;
+          filter: blur(10px);
+          transform: scale(0.98);
+        }
+        to {
+          opacity: 1;
+          filter: blur(0px);
+          transform: scale(1);
         }
       }
 
@@ -4008,6 +4069,56 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         box-shadow: 0 4px 8px rgba(0,0,0,0.3);
       }
 
+      /* Полностью скрываем элементы управления видео */
+      .hero-video::-webkit-media-controls,
+      .hero-video::-webkit-media-controls-panel,
+      .hero-video::-webkit-media-controls-play-button,
+      .hero-video::-webkit-media-controls-start-playback-button,
+      .hero-video::-webkit-media-controls-timeline,
+      .hero-video::-webkit-media-controls-current-time-display,
+      .hero-video::-webkit-media-controls-time-remaining-display,
+      .hero-video::-webkit-media-controls-mute-button,
+      .hero-video::-webkit-media-controls-volume-slider,
+      .hero-video::-webkit-media-controls-fullscreen-button,
+      .hero-video::-webkit-media-controls-enclosure,
+      .hero-video::-webkit-media-controls-overlay-play-button,
+      .hero-video::-webkit-media-controls-rewind-button,
+      .hero-video::-webkit-media-controls-return-to-realtime-button,
+      .hero-video::-webkit-media-controls-seek-back-button,
+      .hero-video::-webkit-media-controls-seek-forward-button,
+      .hero-video::-webkit-media-controls-picture-in-picture-button,
+      .hero-video::-moz-media-controls,
+      .hero-video::-ms-media-controls {
+        display: none !important;
+      }
+
+      /* Дополнительные правила для полного скрытия */
+      .hero-video {
+        pointer-events: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      
+      .hero-video::-webkit-media-controls-overlay {
+        display: none !important;
+      }
+
+      /* Предотвращаем появление элементов управления при скроллинге */
+      .hero-video:focus {
+        outline: none !important;
+      }
+      
+      .hero-video:active {
+        pointer-events: none !important;
+      }
+      
+      /* Скрываем все возможные элементы управления */
+      .hero-video * {
+        pointer-events: none !important;
+      }
+
       .section {
         padding: 6rem 1rem;
         width: 100%;
@@ -4016,6 +4127,10 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         overflow: hidden;
         background-color: var(--section-background-color, transparent);
         z-index: 1;
+        animation: fadeInUp 0.8s ease-out forwards;
+        animation-delay: 1.2s;
+        opacity: 0;
+        animation-fill-mode: forwards;
       }
 
       .section[data-show-background="false"] {
@@ -4857,6 +4972,85 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         });
       }
       
+      // Мгновенное появление hero секции
+      document.addEventListener('DOMContentLoaded', function() {
+        const hero = document.querySelector('.hero');
+        if (hero) {
+          hero.style.opacity = '1';
+          
+          // Принудительно убираем рамки с hero секции
+          hero.style.border = 'none';
+          hero.style.outline = 'none';
+          hero.style.boxShadow = 'none';
+          
+          // Убираем рамки со всех дочерних элементов
+          const allElements = hero.querySelectorAll('*');
+          allElements.forEach(element => {
+            if (element.style) {
+              element.style.border = 'none';
+              element.style.outline = 'none';
+              element.style.boxShadow = 'none';
+            }
+          });
+        }
+      });
+
+      // Мгновенное появление контента
+      document.addEventListener('DOMContentLoaded', function() {
+        const heroContent = document.querySelector('.hero-content');
+        if (heroContent) {
+          heroContent.style.opacity = '1';
+        }
+      });
+
+      // Быстрое появление секций
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+          const sections = document.querySelectorAll('.section');
+          sections.forEach((section, index) => {
+            setTimeout(() => {
+              section.style.opacity = '1';
+            }, index * 50);
+          });
+        }, 100);
+      });
+
+      // Force hide video controls and remove borders on scroll
+      let scrollTimeout;
+      window.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          const heroVideo = document.getElementById('heroVideo');
+          if (heroVideo) {
+            // Принудительно скрываем все элементы управления
+            const controls = heroVideo.querySelectorAll('*');
+            controls.forEach(control => {
+              if (control.style) {
+                control.style.pointerEvents = 'none';
+                control.style.userSelect = 'none';
+              }
+            });
+          }
+          
+          // Постоянно убираем рамки с hero секции
+          const hero = document.querySelector('.hero');
+          if (hero) {
+            hero.style.border = 'none';
+            hero.style.outline = 'none';
+            hero.style.boxShadow = 'none';
+            
+            const allElements = hero.querySelectorAll('*');
+            allElements.forEach(element => {
+              if (element.style) {
+                element.style.border = 'none';
+                element.style.outline = 'none';
+                element.style.boxShadow = 'none';
+              }
+            });
+          }
+        }, 100);
+      });
+
       // Initialize video and GIF preloading
       initializeVideoPreloading();
       
