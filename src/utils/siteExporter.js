@@ -3,6 +3,7 @@ import { saveAs } from 'file-saver';
 import { exportCookieConsentData } from './cookieConsentExporter';
 import { cleanHTML, cleanCSS, cleanJavaScript } from './codeCleanup';
 import { generateLiveChatHTML, generateLiveChatCSS, generateLiveChatJS } from './liveChatExporter';
+import { videoCacheService } from './videoCacheService';
 
 // Function to remove all comments from code
 const removeComments = (code) => {
@@ -33,6 +34,151 @@ export const exportSite = async (siteData) => {
   const cssDir = assetsDir.folder('css');
   const jsDir = assetsDir.folder('js');
   const imagesDir = assetsDir.folder('images');
+  const videosDir = assetsDir.folder('videos');
+  
+  // Принудительно проверяем наличие видео в кеше в начале
+  console.log('🔍 Forcing video cache check at start...');
+  try {
+    // Пробуем оба метода
+    console.log('🔄 Trying getAllVideos()...');
+    let allVideosAtStart = await videoCacheService.getAllVideos();
+    console.log(`🔍 getAllVideos() found ${allVideosAtStart.length} videos:`, allVideosAtStart);
+    
+    if (allVideosAtStart.length === 0) {
+      console.log('🔄 Trying getAllVideosSimple()...');
+      allVideosAtStart = await videoCacheService.getAllVideosSimple();
+      console.log(`🔍 getAllVideosSimple() found ${allVideosAtStart.length} videos:`, allVideosAtStart);
+    }
+    
+    // Если есть видео в кеше, но нет в heroData, добавляем информацию
+    if (allVideosAtStart.length > 0) {
+      console.log('✅ Videos found in cache at start:', allVideosAtStart.length);
+    } else {
+      console.log('⚠️ No videos found in cache at start');
+      
+      console.log('⚠️ No videos found in cache during initial check');
+    }
+  } catch (error) {
+    console.error('❌ Error checking video cache at start:', error);
+  }
+  
+  // Add hero video if exists
+  console.log('🎬 Checking hero video conditions...');
+  console.log('🔍 Full siteData:', siteData);
+  console.log('🔍 Hero data:', siteData.heroData);
+  console.log('🔍 Hero background type:', siteData.heroData?.backgroundType);
+  console.log('🔍 Hero background video:', siteData.heroData?.backgroundVideo);
+  
+  // Проверяем все возможные условия для видео
+  const hasHeroVideo = siteData.heroData?.backgroundType === 'video' && siteData.heroData?.backgroundVideo;
+  const hasVideoMetadata = localStorage.getItem('heroVideoMetadata');
+  const hasAnyVideoInCache = false; // Будет проверено ниже
+  
+  console.log('🔍 Video conditions check:', {
+    hasHeroVideo,
+    hasVideoMetadata: !!hasVideoMetadata,
+    backgroundType: siteData.heroData?.backgroundType,
+    backgroundVideo: siteData.heroData?.backgroundVideo
+  });
+  
+  // Всегда пытаемся обработать видео, независимо от условий hero
+  if (true) {
+    try {
+      console.log('🎬 Processing hero video...');
+      
+      // Получаем метаданные видео из localStorage (аналогично изображениям)
+      const videoMetadata = JSON.parse(localStorage.getItem('heroVideoMetadata') || '{}');
+      console.log('🔍 Hero video metadata:', videoMetadata);
+      
+      if (videoMetadata.filename) {
+        // Получаем видео из кэша по имени файла из метаданных
+        const videoFile = await videoCacheService.getVideo(videoMetadata.filename);
+      if (videoFile) {
+          videosDir.file(videoMetadata.filename, videoFile);
+          console.log(`✅ Hero video added to export: ${videoMetadata.filename} (${videoFile.size} bytes)`);
+        
+
+          
+          
+        } else {
+          console.warn('⚠️ Hero video not found in cache:', videoMetadata.filename);
+          
+
+        }
+      } else {
+        console.warn('⚠️ No hero video metadata found');
+        
+        // Пытаемся получить видео по стандартному имени
+        try {
+          const videoFile = await videoCacheService.getVideo('hero.mp4');
+          if (videoFile) {
+            videosDir.file('hero.mp4', videoFile);
+            console.log(`✅ Hero video found by standard name: hero.mp4 (${videoFile.size} bytes)`);
+        assetsDir.file('hero.mp4', videoFile);
+      } else {
+            console.warn('⚠️ Hero video not found by standard name either');
+          }
+        } catch (fallbackError) {
+          console.error('❌ Fallback video check failed:', fallbackError);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error processing hero video:', error);
+      
+
+    }
+  }
+  
+  // Export ALL videos from cache (similar to how images are exported)
+  try {
+    console.log('🎬 Processing ALL videos from cache...');
+    
+    // Get all videos from cache using both methods
+    let allVideos = await videoCacheService.getAllVideos();
+    console.log(`🔍 getAllVideos() found ${allVideos.length} videos`);
+    
+    if (allVideos.length === 0) {
+      console.log('🔄 Trying getAllVideosSimple()...');
+      allVideos = await videoCacheService.getAllVideosSimple();
+      console.log(`🔍 getAllVideosSimple() found ${allVideos.length} videos`);
+    }
+    
+    console.log(`🔍 Total videos found: ${allVideos.length}`);
+    console.log('📹 All videos details:', allVideos.map(v => ({
+      key: v.key,
+      size: v.size,
+      type: v.type
+    })));
+    
+    if (allVideos.length > 0) {
+      console.log(`📹 Processing ${allVideos.length} videos...`);
+      
+      for (const video of allVideos) {
+        try {
+          const videoKey = video.key || video.name || 'unknown';
+          const videoBlob = video.value || video.blob || video;
+          
+          if (videoBlob && videoBlob.size) {
+            // Добавляем в папку videos
+            videosDir.file(videoKey, videoBlob);
+            console.log(`✅ Video added to videos folder: ${videoKey} (${videoBlob.size} bytes)`);
+            
+
+          }
+        } catch (videoError) {
+          console.error(`❌ Error processing video ${video.key || 'unknown'}:`, videoError);
+        }
+      }
+      
+
+    } else {
+      console.log('ℹ️ No videos found in cache');
+    }
+  } catch (error) {
+    console.error('❌ Error processing videos:', error);
+    
+
+  }
   
   // Add chat open sound if live chat is enabled
   console.log('🔍 Checking live chat status:', {
@@ -111,30 +257,7 @@ export const exportSite = async (siteData) => {
         console.log('📁 Files added to assets/: chat-open.mp3, chat-open.ogg, chat-open.wav');
         console.log('📁 Files added to root/: chat-open.mp3, chat-open.ogg, chat-open.wav');
         
-        // Add verification file
-        assetsDir.file('SOUND-SUCCESS.txt', 
-          'CHAT SOUND SUCCESSFULLY ADDED\n' +
-          '===========================\n\n' +
-          'Sound file was successfully found and added to export.\n' +
-          'Source path: ' + successPath + '\n' +
-                      'File size: ' + soundBuffer.byteLength + ' bytes\n' +
-            'Added at: ' + new Date().toISOString() + '\n\n' +
-                      'ADDED FILES:\n' +
-            '- assets/chat-open.mp3\n' +
-          '- assets/chat-open.ogg\n' +
-          '- assets/chat-open.wav\n' +
-                      '- chat-open.mp3 (in root)\n' +
-            '- chat-open.ogg (in root)\n' +
-            '- chat-open.wav (in root)\n\n' +
-            'Chat JavaScript code will automatically try to load sound from:\n' +
-          '1. assets/chat-open.ogg\n' +
-          '2. assets/chat-open.wav\n' +
-          '3. assets/chat-open.mp3\n' +
-          '4. chat-open.ogg\n' +
-          '5. chat-open.wav\n' +
-          '6. chat-open.mp3\n\n' +
-                      'If sound does not play, check browser console for debugging.'
-        );
+
       } else {
         console.warn('⚠️ Could not load chat sound file from any path');
         console.warn('📝 Tried paths:', possiblePaths);
@@ -379,6 +502,60 @@ const generateIndexHtml = (siteData) => {
 
 const generateStyles = () => {
   return `
+    /* Video and GIF preloading styles */
+    .hero-video,
+    .hero-gif {
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+    
+    .hero-video.loaded,
+    .hero-gif.loaded {
+      opacity: 1;
+    }
+    
+    .hero-video.loading,
+    .hero-gif.loading {
+      opacity: 0.3;
+    }
+    
+    /* Video and GIF loading overlay */
+    .video-loading-overlay,
+    .gif-loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      transition: opacity 0.5s ease-in-out;
+    }
+    
+    .video-loading-overlay.hidden,
+    .gif-loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .video-loading-spinner,
+    .gif-loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid #ffffff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
     /* Reset and base styles */
     * {
       margin: 0;
@@ -841,6 +1018,9 @@ const generateAppJs = (siteData) => {
       root.style.setProperty('--header-title-color', '${headerData.titleColor || '#000000'}');
       root.style.setProperty('--header-link-color', '${headerData.linksColor || '#000000'}');
       
+      // Initialize video preloading if hero video exists
+      initializeVideoPreloading();
+      
       initializeScripts();
       initializeAnimations();
       
@@ -854,6 +1034,83 @@ const generateAppJs = (siteData) => {
       // Also try without delay for immediate execution
       autoDisplayDomain();
     });
+    
+    function initializeVideoPreloading() {
+      const heroVideo = document.getElementById('heroVideo');
+      const heroGif = document.getElementById('heroGif');
+      const videoLoadingOverlay = document.getElementById('videoLoadingOverlay');
+      const gifLoadingOverlay = document.getElementById('gifLoadingOverlay');
+      
+      // Initialize video preloading
+      if (heroVideo && videoLoadingOverlay) {
+        console.log('🎬 Initializing video preloading...');
+        
+        // Show loading overlay initially
+        videoLoadingOverlay.classList.remove('hidden');
+        heroVideo.classList.add('loading');
+        
+        // Wait for video to be ready to play
+        heroVideo.addEventListener('canplay', function() {
+          console.log('✅ Video can play, starting playback...');
+          heroVideo.classList.remove('loading');
+          heroVideo.classList.add('loaded');
+          
+          // Hide loading overlay with smooth transition
+          setTimeout(() => {
+            videoLoadingOverlay.classList.add('hidden');
+          }, 500);
+        });
+        
+        // Handle video load errors
+        heroVideo.addEventListener('error', function() {
+          console.error('❌ Video loading error, hiding overlay...');
+          videoLoadingOverlay.classList.add('hidden');
+          heroVideo.classList.remove('loading');
+        });
+        
+        // Force video to start loading
+        heroVideo.load();
+        
+        // Start playing as soon as possible
+        heroVideo.addEventListener('canplaythrough', function() {
+          console.log('🎯 Video fully loaded, ensuring playback...');
+          heroVideo.play().catch(e => {
+            console.log('⚠️ Autoplay blocked, but video is ready');
+          });
+        });
+      }
+      
+      // Initialize GIF preloading
+      if (heroGif && gifLoadingOverlay) {
+        console.log('🖼️ Initializing GIF preloading...');
+        
+        // Show loading overlay initially
+        gifLoadingOverlay.classList.remove('hidden');
+        heroGif.classList.add('loading');
+        
+        // Wait for GIF to be fully loaded
+        heroGif.addEventListener('load', function() {
+          console.log('✅ GIF fully loaded...');
+          heroGif.classList.remove('loading');
+          heroGif.classList.add('loaded');
+          
+          // Hide loading overlay with smooth transition
+          setTimeout(() => {
+            gifLoadingOverlay.classList.add('hidden');
+          }, 500);
+        });
+        
+        // Handle GIF load errors
+        heroGif.addEventListener('error', function() {
+          console.error('❌ GIF loading error, hiding overlay...');
+          gifLoadingOverlay.classList.add('hidden');
+          heroGif.classList.remove('loading');
+        });
+        
+        // Force GIF to start loading
+        heroGif.src = heroGif.src;
+      }
+    }
 
     function initializeScripts() {
       // Initialize menu toggle

@@ -21,6 +21,7 @@ import { generateLiveChatHTML, generateLiveChatCSS, generateLiveChatJS } from '.
 import LiveChatEditor from './LiveChatEditor';
 import Slider from '@mui/material/Slider';
 import { imageCacheService } from '../../utils/imageCacheService';
+import { videoCacheService } from '../../utils/videoCacheService';
 import imageCompression from 'browser-image-compression';
 import AuthPanel from '../Auth/AuthPanel';
 import SectionImageGallery from './SectionImageGallery';
@@ -2026,6 +2027,55 @@ const EditorPanel = ({
       ${data.heroData.backgroundType === 'image' ? `
         <div class="hero-bg-animation" style="background-image: url('${data.heroData.backgroundImage.replace('/images/hero/', 'assets/images/')}');"></div>
       ` : ''}
+      ${data.heroData.backgroundType === 'video' ? `
+        <div class="video-loading-overlay" id="videoLoadingOverlay">
+          <div class="video-loading-spinner"></div>
+        </div>
+        <video 
+          class="hero-video" 
+          style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+          "
+          autoplay="${data.heroData.videoAutoplay || true}"
+          loop="${data.heroData.videoLoop || true}"
+          muted="${data.heroData.videoMuted || true}"
+          controls="${data.heroData.videoControls || false}"
+          playsinline
+          preload="auto"
+          id="heroVideo"
+        >
+          <source src="${data.heroData.backgroundVideo.replace('/assets/', 'assets/')}" type="video/mp4">
+          <source src="${data.heroData.backgroundVideo.replace('/assets/', 'assets/').replace('.mp4', '.webm')}" type="video/webm">
+          <source src="${data.heroData.backgroundVideo.replace('/assets/', 'assets/').replace('.mp4', '.ogg')}" type="video/ogg">
+          Ваш браузер не поддерживает видео.
+        </video>
+      ` : ''}
+      ${data.heroData.backgroundType === 'gif' ? `
+        <div class="gif-loading-overlay" id="gifLoadingOverlay">
+          <div class="gif-loading-spinner"></div>
+        </div>
+        <img 
+          class="hero-gif" 
+          style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+          "
+          src="${data.heroData.backgroundGif.replace('/assets/', 'assets/')}"
+          alt="Hero background GIF"
+          id="heroGif"
+        />
+      ` : ''}
       ${data.heroData.enableOverlay ? `
         <div class="hero-overlay" style="
           background: linear-gradient(rgba(0,0,0,${data.heroData.overlayOpacity / 100 || 0.5}), rgba(0,0,0,${data.heroData.overlayOpacity / 100 || 0.5}));
@@ -2299,7 +2349,7 @@ const EditorPanel = ({
                   font-weight: 600;
                   margin-bottom: 0.5rem;
                   font-family: 'Montserrat', sans-serif;
-                  text-align: left;
+                  text-align: center;
                 ">${card.title || ''}</h3>
                 <p style="
                   color: ${cardContentColor};
@@ -2615,12 +2665,14 @@ const EditorPanel = ({
                     font-size: 1.5rem;
                     font-weight: 600;
                     transition: color 0.3s ease-in-out;
+                    text-align: center;
                   ">${card.title || ''}</h3>
                   <p style="
                     color: ${card.contentColor || section.contentColor || '#455a64'}; 
                     font-size: 1rem;
                     line-height: 1.6;
                     transition: color 0.3s ease-in-out;
+                    text-align: left;
                   ">${card.content || ''}</p>
                 </div>
               `).join('')}
@@ -4804,6 +4856,60 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
           }
         });
       }
+      
+      // Initialize video and GIF preloading
+      initializeVideoPreloading();
+      
+      function initializeVideoPreloading() {
+        const heroVideo = document.getElementById('heroVideo');
+        const heroGif = document.getElementById('heroGif');
+        const videoLoadingOverlay = document.getElementById('videoLoadingOverlay');
+        const gifLoadingOverlay = document.getElementById('gifLoadingOverlay');
+        
+        // Initialize video preloading
+        if (heroVideo && videoLoadingOverlay) {
+          videoLoadingOverlay.classList.remove('hidden');
+          heroVideo.classList.add('loading');
+          
+          heroVideo.addEventListener('canplay', function() {
+            heroVideo.classList.remove('loading');
+            heroVideo.classList.add('loaded');
+            setTimeout(() => {
+              videoLoadingOverlay.classList.add('hidden');
+            }, 500);
+          });
+          
+          heroVideo.addEventListener('error', function() {
+            videoLoadingOverlay.classList.add('hidden');
+            heroVideo.classList.remove('loading');
+          });
+          
+          // Force video to start loading
+          heroVideo.load();
+        }
+        
+        // Initialize GIF preloading
+        if (heroGif && gifLoadingOverlay) {
+          gifLoadingOverlay.classList.remove('hidden');
+          heroGif.classList.add('loading');
+          
+          heroGif.addEventListener('load', function() {
+            heroGif.classList.remove('loading');
+            heroGif.classList.add('loaded');
+            setTimeout(() => {
+              gifLoadingOverlay.classList.add('hidden');
+            }, 500);
+          });
+          
+          heroGif.addEventListener('error', function() {
+            gifLoadingOverlay.classList.add('hidden');
+            heroGif.classList.remove('loading');
+          });
+          
+          // Force GIF to start loading
+          heroGif.src = heroGif.src;
+        }
+      }
     `;
   };
 
@@ -4923,6 +5029,7 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
       const cssFolder = assetsFolder.folder('css');
       const jsFolder = assetsFolder.folder('js');
       const imagesFolder = assetsFolder.folder('images');
+      const videosFolder = assetsFolder.folder('videos');
 
       // Add merci.html to root with language settings
       const merciResponse = await fetch('/merci.html');
@@ -4993,7 +5100,8 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
           title: heroData.title || '',
           subtitle: heroData.subtitle || '',
           buttonText: heroData.buttonText || '',
-          backgroundImage: heroData.backgroundImage ? 'assets/images/' + heroData.backgroundImage.split('/').pop() : ''
+          backgroundImage: heroData.backgroundImage ? 'assets/images/' + heroData.backgroundImage.split('/').pop() : '',
+          backgroundGif: heroData.backgroundGif ? 'assets/images/' + heroData.backgroundGif.split('/').pop() : ''
         },
         sectionsData: sectionsArray,
         contactData: {
@@ -5464,22 +5572,26 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
         zip.file('update-sitemap.php', defaultContent);
       }
 
-      // Get hero image from cache
-      if (heroData.backgroundImage) {
+      // Get hero image from cache only if background type is image
+      if (heroData.backgroundImage && heroData.backgroundType === 'image') {
         try {
           const imageMetadata = JSON.parse(localStorage.getItem('heroImageMetadata') || '{}');
           if (imageMetadata.filename) {
             const blob = await imageCacheService.getImage(imageMetadata.filename);
             if (blob) {
               imagesFolder.file(imageMetadata.filename, blob);
-              console.log('Hero image successfully added to zip from cache');
+              console.log('✅ Hero image successfully added to zip from cache');
             } else {
-              console.warn('Hero image not found in cache');
+              console.warn('⚠️ Hero image not found in cache');
             }
           }
         } catch (error) {
-          console.error('Error getting hero image from cache:', error);
+          console.error('❌ Error getting hero image from cache:', error);
         }
+      } else if (heroData.backgroundType === 'video') {
+        // Skip hero image export for video
+      } else if (heroData.backgroundType === 'gif') {
+        // Skip hero image export for GIF
       }
 
       // Get about image from cache
@@ -5511,7 +5623,7 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
           }
         }
       } catch (error) {
-        console.error('Error getting about image from cache:', error);
+        console.error('Error getting hero image from cache:', error);
       }
 
       // Get section images from cache
@@ -5552,7 +5664,7 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
                 }
               }
             } else {
-              console.warn(`Нет метаданных изображения для секции ${sectionId}`);
+              console.warn(`Нет метаданных изображения для секции ${sectionId}:`);
             }
           } catch (parseError) {
             console.error(`Ошибка при разборе метаданных для секции ${sectionId}:`, parseError);
@@ -5667,6 +5779,134 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
         console.error('Error getting favicon from cache:', error);
       }
 
+      // Export videos from cache
+      console.log('🎬 Starting video export from cache...');
+      console.log('🔍 localStorage keys:', Object.keys(localStorage));
+      console.log('🔍 heroVideoMetadata raw:', localStorage.getItem('heroVideoMetadata'));
+      
+      try {
+        // Get hero video metadata
+        const heroVideoMetadata = JSON.parse(localStorage.getItem('heroVideoMetadata') || '{}');
+        console.log('🔍 Hero video metadata:', heroVideoMetadata);
+        
+        if (heroVideoMetadata.filename) {
+          console.log('🔍 videoCacheService available:', typeof videoCacheService);
+          console.log('🔍 videoCacheService methods:', Object.getOwnPropertyNames(videoCacheService));
+          
+          try {
+            const videoFile = await videoCacheService.getVideo(heroVideoMetadata.filename);
+            if (videoFile) {
+              videosFolder.file(heroVideoMetadata.filename, videoFile);
+              console.log(`✅ Hero video added to zip: ${heroVideoMetadata.filename} (${videoFile.size} bytes)`);
+              console.log(`📁 Video added to: assets/videos/${heroVideoMetadata.filename}`);
+              
+
+              
+
+            } else {
+              console.warn('⚠️ Hero video not found in cache:', heroVideoMetadata.filename);
+            }
+          } catch (videoError) {
+            console.error('❌ Error getting hero video from cache:', videoError);
+          }
+        } else {
+          console.log('ℹ️ No hero video metadata found');
+        }
+
+        // Export all other videos from cache
+        try {
+          const allVideos = await videoCacheService.getAllVideos();
+          console.log(`🔍 Found ${allVideos.length} videos in cache`);
+          
+          if (allVideos.length > 0) {
+            console.log(`📹 Processing ${allVideos.length} videos...`);
+            
+            for (const video of allVideos) {
+              try {
+                const videoKey = video.key || video.name || 'unknown';
+                const videoBlob = video.value || video.blob || video;
+                
+                if (videoBlob && videoBlob.size) {
+                  // Skip hero video (already processed above)
+                  if (videoKey === heroVideoMetadata.filename) {
+                    console.log(`⏭️ Skipping hero video: ${videoKey}`);
+                    continue;
+                  }
+                  
+                  videosFolder.file(videoKey, videoBlob);
+                  console.log(`✅ Additional video added: ${videoKey} (${videoBlob.size} bytes)`);
+                  
+                  // Also add to root assets for compatibility
+                  assetsFolder.file(videoKey, videoBlob);
+                  console.log(`✅ Additional video also added to assets root: ${videoKey}`);
+                }
+              } catch (videoError) {
+                console.error(`❌ Error processing additional video ${video.key || 'unknown'}:`, videoError);
+              }
+            }
+            
+            // Add summary file for all videos
+            videosFolder.file('ALL-VIDEOS-EXPORT.txt', 
+              'ALL VIDEOS EXPORTED\n' +
+              '===================\n\n' +
+              'The following videos were found and exported:\n\n' +
+              allVideos.map(video => {
+                const key = video.key || video.name || 'unknown';
+                const size = (video.value || video.blob || video).size || 'unknown';
+                return `- ${key} (${size} bytes)`;
+              }).join('\n') + '\n\n' +
+              'All videos were automatically added to:\n' +
+              '- assets/videos/ folder\n' +
+              '- assets/ folder (root)\n\n' +
+              'Exported at: ' + new Date().toISOString()
+            );
+          } else {
+            console.log('ℹ️ No additional videos found in cache');
+          }
+        } catch (error) {
+          console.error('❌ Error processing additional videos:', error);
+          videosFolder.file('ADDITIONAL-VIDEOS-ERROR.txt', 
+            'ADDITIONAL VIDEOS EXPORT ERROR\n' +
+            '==============================\n\n' +
+            'Error occurred while processing additional videos:\n' +
+            'Error: ' + error.message + '\n\n' +
+            'TECHNICAL INFORMATION:\n' +
+            'Error time: ' + new Date().toISOString() + '\n' +
+            'Error stack: ' + error.stack
+          );
+        }
+      } catch (error) {
+        console.error('❌ Error during video export:', error);
+        videosFolder.file('VIDEO-EXPORT-MAIN-ERROR.txt', 
+          'VIDEO EXPORT MAIN ERROR\n' +
+          '======================\n\n' +
+          'Main error occurred during video export:\n' +
+          'Error: ' + error.message + '\n\n' +
+          'TECHNICAL INFORMATION:\n' +
+          'Error time: ' + new Date().toISOString() + '\n' +
+          'Error stack: ' + error.stack
+        );
+      }
+
+      // Export GIF from cache
+      try {
+        // Get hero GIF metadata
+        const heroGifMetadata = JSON.parse(localStorage.getItem('heroGifMetadata') || '{}');
+        
+        if (heroGifMetadata.filename && heroData.backgroundType === 'gif') {
+          try {
+            const gifFile = await imageCacheService.getImage(heroGifMetadata.filename);
+            if (gifFile) {
+              imagesFolder.file(heroGifMetadata.filename, gifFile);
+            }
+          } catch (gifError) {
+            console.error('❌ Error getting hero GIF from cache:', gifError);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error during GIF export:', error);
+      }
+
       // Generate and download the zip file
       const content = await zip.generateAsync({ 
         type: 'blob',
@@ -5689,6 +5929,7 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
       const cssFolder = assetsFolder.folder('css');
       const jsFolder = assetsFolder.folder('js');
       const imagesFolder = assetsFolder.folder('images');
+      const videosFolder = assetsFolder.folder('videos');
 
       // Add merci.html to root with language settings
       const merciResponse = await fetch('/merci.html');
@@ -6158,22 +6399,26 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
         zip.file('update-sitemap.php', defaultContent);
       }
 
-      // Get hero image from cache
-      if (heroData.backgroundImage) {
+      // Get hero image from cache only if background type is image
+      if (heroData.backgroundImage && heroData.backgroundType === 'image') {
         try {
           const imageMetadata = JSON.parse(localStorage.getItem('heroImageMetadata') || '{}');
           if (imageMetadata.filename) {
             const blob = await imageCacheService.getImage(imageMetadata.filename);
             if (blob) {
               imagesFolder.file(imageMetadata.filename, blob);
-              console.log('Hero image successfully added to zip from cache');
+              console.log('✅ Hero image successfully added to zip from cache');
             } else {
-              console.warn('Hero image not found in cache');
+              console.warn('⚠️ Hero image not found in cache');
             }
           }
         } catch (error) {
-          console.error('Error getting hero image from cache:', error);
+          console.error('❌ Error getting hero image from cache:', error);
         }
+      } else if (heroData.backgroundType === 'video') {
+        // Skip hero image export for video
+      } else if (heroData.backgroundType === 'gif') {
+        // Skip hero image export for GIF
       }
 
       // Get about image from cache
@@ -6334,6 +6579,46 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
         console.error('Error getting favicon from cache:', error);
       }
 
+      // Export hero video from cache for PHP
+      try {
+        const heroVideoMetadata = JSON.parse(localStorage.getItem('heroVideoMetadata') || '{}');
+        if (heroVideoMetadata.filename && siteData.heroData.backgroundType === 'video') {
+          try {
+            const videoFile = await videoCacheService.getVideo(heroVideoMetadata.filename);
+            if (videoFile) {
+              videosFolder.file(heroVideoMetadata.filename, videoFile);
+              console.log(`✅ PHP Hero video added to zip: ${heroVideoMetadata.filename} (${videoFile.size} bytes)`);
+            } else {
+              console.warn('⚠️ PHP Hero video not found in cache:', heroVideoMetadata.filename);
+            }
+          } catch (videoError) {
+            console.error('❌ Error getting hero video from cache for PHP:', videoError);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error during video export for PHP:', error);
+      }
+
+      // Export hero GIF from cache for PHP
+      try {
+        const heroGifMetadata = JSON.parse(localStorage.getItem('heroGifMetadata') || '{}');
+        if (heroGifMetadata.filename && siteData.heroData.backgroundType === 'gif') {
+          try {
+            const gifFile = await imageCacheService.getImage(heroGifMetadata.filename);
+            if (gifFile) {
+              imagesFolder.file(heroGifMetadata.filename, gifFile);
+              console.log(`✅ PHP Hero GIF added to zip: ${heroGifMetadata.filename} (${gifFile.size} bytes)`);
+            } else {
+              console.warn('⚠️ PHP Hero GIF not found in cache:', heroGifMetadata.filename);
+            }
+          } catch (gifError) {
+            console.error('❌ Error getting hero GIF from cache for PHP:', gifError);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error during GIF export for PHP:', error);
+      }
+
       // Generate and download the zip file
       const content = await zip.generateAsync({ 
         type: 'blob',
@@ -6375,7 +6660,12 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
           padding: data.headerData.runningLine?.padding || '4'
         }
       },
-      heroData: data.heroData,
+      heroData: {
+        ...data.heroData,
+        backgroundImage: data.heroData.backgroundImage ? 'assets/images/' + data.heroData.backgroundImage.split('/').pop() : '',
+        backgroundVideo: data.heroData.backgroundVideo ? 'assets/videos/' + data.heroData.backgroundVideo.split('/').pop() : '',
+        backgroundGif: data.heroData.backgroundGif ? 'assets/images/' + data.heroData.backgroundGif.split('/').pop() : ''
+      },
       sectionsData: data.sectionsData,
       contactData: data.contactData,
       footerData: data.footerData,
@@ -6758,7 +7048,13 @@ ${data.liveChatData?.enabled ? generateLiveChatHTML(data.headerData.siteName || 
           title: heroData.title || '',
           subtitle: heroData.subtitle || '',
           buttonText: heroData.buttonText || '',
-          backgroundImage: heroData.backgroundImage ? 'assets/images/hero/' + heroData.backgroundImage.split('/').pop() : ''
+          backgroundImage: heroData.backgroundImage ? 'assets/images/hero/' + heroData.backgroundImage.split('/').pop() : '',
+          backgroundVideo: heroData.backgroundVideo ? 'assets/videos/' + heroData.backgroundVideo.split('/').pop() : '',
+          // Видео настройки
+          videoAutoplay: heroData.videoAutoplay || true,
+          videoLoop: heroData.videoLoop || true,
+          videoMuted: heroData.videoMuted || true,
+          videoControls: heroData.videoControls || false
         },
         sectionsData: sectionsData.map(section => ({
           ...section,
@@ -6804,6 +7100,17 @@ ${data.liveChatData?.enabled ? generateLiveChatHTML(data.headerData.siteName || 
           allTranslations: liveChatData.allTranslations || ''
         }
       };
+
+      // Отладочная информация для видео
+      console.log('🔍 DEBUG: siteData.heroData:', {
+        backgroundType: siteData.heroData.backgroundType,
+        backgroundVideo: siteData.heroData.backgroundVideo,
+        originalBackgroundVideo: heroData.backgroundVideo,
+        videoAutoplay: siteData.heroData.videoAutoplay,
+        videoLoop: siteData.heroData.videoLoop,
+        videoMuted: siteData.heroData.videoMuted,
+        videoControls: siteData.heroData.videoControls
+      });
 
       await exportSite(siteData);
       } catch (error) {

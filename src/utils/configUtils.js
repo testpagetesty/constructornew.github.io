@@ -92,8 +92,13 @@ export const applyConfig = (config, setHeaderData, setHeroData, setSectionsData)
     gradientColor2: config.hero.gradientColor2,
     gradientDirection: config.hero.gradientDirection,
     backgroundImage: config.hero.backgroundImage,
+    backgroundVideo: config.hero.backgroundVideo,
     titleColor: config.hero.titleColor,
-    subtitleColor: config.hero.subtitleColor
+    subtitleColor: config.hero.subtitleColor,
+    videoAutoplay: config.hero.videoAutoplay,
+    videoLoop: config.hero.videoLoop,
+    videoMuted: config.hero.videoMuted,
+    videoControls: config.hero.videoControls
   });
 
   // Применяем настройки секций
@@ -123,8 +128,13 @@ export const generateConfig = (headerData, heroData, sectionsData) => {
       gradientColor2: heroData.gradientColor2,
       gradientDirection: heroData.gradientDirection,
       backgroundImage: heroData.backgroundImage,
+      backgroundVideo: heroData.backgroundVideo,
       titleColor: heroData.titleColor,
-      subtitleColor: heroData.subtitleColor
+      subtitleColor: heroData.subtitleColor,
+      videoAutoplay: heroData.videoAutoplay,
+      videoLoop: heroData.videoLoop,
+      videoMuted: heroData.videoMuted,
+      videoControls: heroData.videoControls
     },
     sections: sectionsData.map(section => ({
       ...section,

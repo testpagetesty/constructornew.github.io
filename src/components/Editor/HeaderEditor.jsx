@@ -58,7 +58,8 @@ const HeaderEditor = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const fileInputRef = useRef(null);
   const [showLanguageWarning, setShowLanguageWarning] = useState(false);
-  const [isDescriptionManuallyEdited, setIsDescriptionManuallyEdited] = useState(false);
+  const [descriptionEditedManually, setDescriptionEditedManually] = useState(false);
+
 
   // Инициализация заголовка при первом рендере
   useEffect(() => {
@@ -69,10 +70,42 @@ const HeaderEditor = ({
 
   // Синхронизация описания с подзаголовком hero секции
   useEffect(() => {
-    if (heroData?.subtitle && !isDescriptionManuallyEdited) {
+    console.log('🔄 HeaderEditor: useEffect сработал, heroData.subtitle:', heroData?.subtitle);
+    console.log('🔄 HeaderEditor: текущий headerData.description:', headerData?.description);
+    console.log('🔄 HeaderEditor: descriptionEditedManually:', descriptionEditedManually);
+    
+    // Синхронизируем только если description пустой или если subtitle изменился и description не редактировался вручную
+    if (heroData?.subtitle) {
+      // Если description пустой - заполняем автоматически
+      if (!headerData.description || headerData.description.trim() === '') {
+        console.log('🔄 HeaderEditor: Синхронизирую description с hero.subtitle (description пустой):', heroData.subtitle);
+        onHeaderChange({ ...headerData, description: heroData.subtitle });
+        setDescriptionEditedManually(false); // Сбрасываем флаг ручного редактирования
+      }
+      // Если description не редактировался вручную - обновляем автоматически
+      else if (!descriptionEditedManually) {
+        console.log('🔄 HeaderEditor: Обновляю description при изменении hero.subtitle (не редактировалось вручную):', heroData.subtitle);
+        onHeaderChange({ ...headerData, description: heroData.subtitle });
+      }
+      // Если description редактировался вручную - не трогаем
+      else {
+        console.log('🔄 HeaderEditor: Пропускаю синхронизацию - description отредактирован вручную:', headerData.description);
+      }
+    }
+  }, [heroData?.subtitle]); // Убираем headerData?.description из зависимостей
+
+  // Принудительная инициализация description при первом рендере
+  useEffect(() => {
+    console.log('🔄 HeaderEditor: Принудительная инициализация useEffect сработал');
+    console.log('🔄 HeaderEditor: heroData.subtitle:', heroData?.subtitle);
+    console.log('🔄 HeaderEditor: headerData.description:', headerData.description);
+    
+    // Инициализируем только если description пустой и есть subtitle
+    if (heroData?.subtitle && (!headerData.description || headerData.description.trim() === '')) {
+      console.log('🔄 HeaderEditor: Принудительная инициализация description с hero.subtitle:', heroData.subtitle);
       onHeaderChange({ ...headerData, description: heroData.subtitle });
     }
-  }, [heroData?.subtitle, isDescriptionManuallyEdited]);
+  }, [heroData?.subtitle]); // Добавляем heroData?.subtitle в зависимости
 
   // Проверка языка при размонтировании компонента
   useEffect(() => {
@@ -456,36 +489,60 @@ const HeaderEditor = ({
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-                    <TextField
-                      fullWidth
-                      label="Description"
-                      value={headerData.description || heroData?.subtitle || "Наш сайт предлагает лучшие решения"}
-                      onChange={(e) => {
-                        const newDescription = e.target.value;
-                        setIsDescriptionManuallyEdited(true);
-                        onHeaderChange({ ...headerData, description: newDescription });
-                      }}
-                      multiline
-                      rows={2}
-                      placeholder="Наш сайт предлагает лучшие решения"
-                      helperText={isDescriptionManuallyEdited ? "(редактировано вручную)" : "(автоматически из hero)"}
-                    />
-                    {isDescriptionManuallyEdited && (
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => {
-                          setIsDescriptionManuallyEdited(false);
-                          onHeaderChange({ ...headerData, description: heroData?.subtitle || "" });
+                                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                      <TextField
+                        fullWidth
+                        label="Description"
+                        value={headerData.description || heroData?.subtitle || ""}
+                        onChange={(e) => {
+                          const newValue = e.target.value;
+                          onHeaderChange({ ...headerData, description: newValue });
+                          // Если пользователь ввел что-то отличное от hero.subtitle - устанавливаем флаг ручного редактирования
+                          if (newValue !== heroData?.subtitle) {
+                            setDescriptionEditedManually(true);
+                          }
                         }}
-                        sx={{ mt: 1, minWidth: 'auto', px: 1 }}
-                        title="Вернуть автоматическую синхронизацию с Hero"
-                      >
-                        ↻
-                      </Button>
-                    )}
-                  </Box>
+                        multiline
+                        rows={2}
+                        placeholder="Описание сайта (автоматически заполняется из раздела HERO)"
+                        helperText={
+                          descriptionEditedManually
+                            ? "Отредактировано вручную (автоматическая синхронизация отключена)"
+                            : headerData.description === heroData?.subtitle 
+                            ? "Значение из раздела HERO (можно редактировать)"
+                            : "Автоматически заполняется из раздела HERO, но можно редактировать вручную"
+                        }
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: '#ffffff',
+                          }
+                        }}
+                      />
+                      {descriptionEditedManually && (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => {
+                            setDescriptionEditedManually(false);
+                            onHeaderChange({ ...headerData, description: heroData?.subtitle || '' });
+                          }}
+                          title="Включить автоматическую синхронизацию с HERO"
+                          sx={{ 
+                            minWidth: 'auto',
+                            px: 1,
+                            height: '56px',
+                            borderColor: '#2e7d32',
+                            color: '#2e7d32',
+                            '&:hover': {
+                              borderColor: '#1b5e20',
+                              backgroundColor: 'rgba(46, 125, 50, 0.04)'
+                            }
+                          }}
+                        >
+                          🔄
+                        </Button>
+                      )}
+                    </Box>
                 </Grid>
                 <Grid item xs={12}>
                   <TextField

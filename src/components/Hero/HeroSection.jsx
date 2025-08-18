@@ -91,6 +91,8 @@ const HeroSection = ({
   subtitle, 
   backgroundType = 'solid',
   backgroundImage = '',
+  backgroundVideo = '',
+  backgroundGif = '',
   backgroundColor = '#ffffff',
   gradientColor1 = '#ffffff',
   gradientColor2 = '#f5f5f5',
@@ -101,7 +103,12 @@ const HeroSection = ({
   enableOverlay = false,
   overlayOpacity = 50,
   enableBlur = false,
-  blurAmount = 0
+  blurAmount = 0,
+  // Новые пропсы для видео
+  videoAutoplay = true,
+  videoLoop = true,
+  videoMuted = true,
+  videoControls = false
 }) => {
   const theme = useTheme();
 
@@ -140,6 +147,13 @@ const HeroSection = ({
           filter: enableBlur ? `blur(${blurAmount}px)` : 'none',
         };
 
+      case 'video':
+        return {
+          ...baseStyle,
+          // Для видео фона не применяем размытие к основному контейнеру
+          filter: 'none',
+        };
+
       case 'solid':
         return {
           ...baseStyle,
@@ -160,6 +174,53 @@ const HeroSection = ({
   return (
     <HeroContainer>
       <BackgroundLayer sx={getBackgroundStyle()} />
+      
+      {/* Видео фон */}
+      {backgroundType === 'video' && backgroundVideo && (
+        <Box
+          component="video"
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 1,
+            filter: enableBlur ? `blur(${blurAmount}px)` : 'none',
+          }}
+          autoPlay={videoAutoplay}
+          loop={videoLoop}
+          muted={videoMuted}
+          controls={videoControls}
+          playsInline
+        >
+          <source src={backgroundVideo} type="video/mp4" />
+          <source src={backgroundVideo.replace('.mp4', '.webm')} type="video/webm" />
+          <source src={backgroundVideo.replace('.mp4', '.ogg')} type="video/ogg" />
+          Ваш браузер не поддерживает видео.
+        </Box>
+      )}
+
+      {/* GIF фон */}
+      {backgroundType === 'gif' && backgroundGif && (
+        <Box
+          component="img"
+          src={backgroundGif}
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 1,
+            filter: enableBlur ? `blur(${blurAmount}px)` : 'none',
+          }}
+          alt="Hero background GIF"
+        />
+      )}
+      
       {enableOverlay && (
         <OverlayLayer 
           sx={{ 
@@ -168,6 +229,7 @@ const HeroSection = ({
           }} 
         />
       )}
+      
       <HeroContent>
         <Box
           sx={{

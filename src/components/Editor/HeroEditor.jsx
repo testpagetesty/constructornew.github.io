@@ -21,10 +21,44 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ImageIcon from '@mui/icons-material/Image';
+import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
 import ColorPicker from '../ColorPicker/ColorPicker';
 import { styled } from '@mui/material/styles';
 import imageCompression from 'browser-image-compression';
 import { imageCacheService } from '../../utils/imageCacheService';
+import { videoCacheService } from '../../utils/videoCacheService';
+
+// Функция для очистки медиафайлов hero из кэша
+const clearHeroMediaFromCache = async (...mediaTypes) => {
+  for (const mediaType of mediaTypes) {
+    try {
+      if (mediaType === 'image') {
+        const metadata = JSON.parse(localStorage.getItem('heroImageMetadata') || '{}');
+        if (metadata.filename) {
+          await imageCacheService.deleteImage(metadata.filename);
+          console.log(`🗑️ Удален hero image из кэша: ${metadata.filename}`);
+        }
+        localStorage.removeItem('heroImageMetadata');
+      } else if (mediaType === 'video') {
+        const metadata = JSON.parse(localStorage.getItem('heroVideoMetadata') || '{}');
+        if (metadata.filename) {
+          await videoCacheService.deleteVideo(metadata.filename);
+          console.log(`🗑️ Удален hero video из кэша: ${metadata.filename}`);
+        }
+        localStorage.removeItem('heroVideoMetadata');
+      } else if (mediaType === 'gif') {
+        const metadata = JSON.parse(localStorage.getItem('heroGifMetadata') || '{}');
+        if (metadata.filename) {
+          await imageCacheService.deleteImage(metadata.filename);
+          console.log(`🗑️ Удален hero GIF из кэша: ${metadata.filename}`);
+        }
+        localStorage.removeItem('heroGifMetadata');
+      }
+    } catch (error) {
+      console.error(`❌ Ошибка при удалении ${mediaType} из кэша:`, error);
+    }
+  }
+};
 
 const ExpandMore = styled((props) => {
   const { expand, ...other } = props;
@@ -40,13 +74,17 @@ const ExpandMore = styled((props) => {
 const HERO_BACKGROUND_TYPES = {
   SOLID: 'solid',
   GRADIENT: 'gradient',
-  IMAGE: 'image'
+  IMAGE: 'image',
+  VIDEO: 'video',
+  GIF: 'gif'
 };
 
 const HERO_BACKGROUND_LABELS = {
   [HERO_BACKGROUND_TYPES.SOLID]: 'Сплошной цвет',
   [HERO_BACKGROUND_TYPES.GRADIENT]: 'Градиент',
-  [HERO_BACKGROUND_TYPES.IMAGE]: 'Изображение'
+  [HERO_BACKGROUND_TYPES.IMAGE]: 'Изображение',
+  [HERO_BACKGROUND_TYPES.VIDEO]: 'Видео',
+  [HERO_BACKGROUND_TYPES.GIF]: 'GIF'
 };
 
 const ANIMATION_TYPES = {
@@ -75,16 +113,25 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
     gradientColor2: '#f5f5f5',
     gradientDirection: 'to right',
     backgroundImage: '',
+    backgroundVideo: '',
+    backgroundGif: '',
     titleColor: '#000000',
     subtitleColor: '#666666',
     animationType: 'none',
     enableOverlay: false,
     overlayOpacity: 0.1,
     enableBlur: false,
-    blurAmount: 0.1
+    blurAmount: 0.1,
+    // Новые настройки для видео
+    videoAutoplay: true,
+    videoLoop: true,
+    videoMuted: true,
+    videoControls: false
   };
 
   const fileInputRef = useRef(null);
+  const videoInputRef = useRef(null);
+  const gifInputRef = useRef(null);
 
   const handleChange = (field, value) => {
     if (field === 'backgroundImage' && value) {
@@ -94,15 +141,65 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
         value = `/assets/images/${value}`;
       }
     }
-    onHeroChange({
+
+    // Очищаем другие поля при смене типа фона
+    let updatedData = {
       ...defaultHeroData,
       ...heroData,
       [field]: value
-    });
+    };
+
+    if (field === 'backgroundType') {
+      if (value === 'image') {
+        updatedData.backgroundVideo = '';
+        updatedData.backgroundGif = '';
+        // Очищаем метаданные и файлы видео и GIF
+        clearHeroMediaFromCache('video', 'gif');
+      } else if (value === 'video') {
+        updatedData.backgroundImage = '';
+        updatedData.backgroundGif = '';
+        // Очищаем метаданные и файлы изображения и GIF
+        clearHeroMediaFromCache('image', 'gif');
+      } else if (value === 'gif') {
+        updatedData.backgroundImage = '';
+        updatedData.backgroundVideo = '';
+        // Очищаем метаданные и файлы изображения и видео
+        clearHeroMediaFromCache('image', 'video');
+      } else if (value === 'solid' || value === 'gradient') {
+        // При выборе сплошного цвета или градиента очищаем все медиафайлы
+        updatedData.backgroundImage = '';
+        updatedData.backgroundVideo = '';
+        updatedData.backgroundGif = '';
+        clearHeroMediaFromCache('image', 'video', 'gif');
+      }
+    }
+
+    onHeroChange(updatedData);
 
     // Обновление превью при изменении настроек
     const previewHero = document.querySelector('#hero');
     if (previewHero) {
+      // Очистка превью при смене типа фона
+      if (field === 'backgroundType') {
+        const heroVideo = previewHero.querySelector('.hero-video');
+        const heroGif = previewHero.querySelector('.hero-gif');
+        const heroImage = previewHero.querySelector('.hero-background');
+        
+        if (value === 'image') {
+          if (heroVideo) heroVideo.remove();
+          if (heroGif) heroGif.remove();
+        } else if (value === 'video') {
+          if (heroImage) heroImage.remove();
+          if (heroGif) heroGif.remove();
+        } else if (value === 'gif') {
+          if (heroVideo) heroVideo.remove();
+          if (heroImage) heroImage.remove();
+        }
+        
+        // Сбрасываем фоновое изображение
+        previewHero.style.backgroundImage = 'none';
+      }
+
       // Обновление размытия
       const heroOverlay = previewHero.querySelector('.hero-overlay');
       if (heroOverlay) {
@@ -183,6 +280,9 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
     if (!file) return;
 
     try {
+      // Очищаем предыдущие медиафайлы перед загрузкой нового изображения
+      await clearHeroMediaFromCache('video', 'gif');
+      
       // Проверка формата
       if (!file.type.startsWith('image/')) {
         throw new Error('Пожалуйста, выберите изображение');
@@ -264,6 +364,252 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
     } catch (error) {
       console.error('Ошибка при загрузке:', error);
       alert('Ошибка при обработке изображения: ' + error.message);
+    }
+  };
+
+  const processVideo = async (file) => {
+    try {
+      // Проверяем размер видео (максимум 50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        throw new Error('Размер видео не должен превышать 50MB');
+      }
+
+      // Проверяем формат видео
+      const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error('Поддерживаются только форматы: MP4, WebM, OGG');
+      }
+
+      // Всегда используем hero.mp4 как имя файла
+      const filename = 'hero.mp4';
+
+      // Сохранение в кэш
+      await videoCacheService.saveVideo(filename, file);
+
+      // Создание URL для превью
+      const url = URL.createObjectURL(file);
+
+      // Сохранение метаданных видео
+      const videoMetadata = {
+        filename,
+        type: file.type,
+        size: file.size,
+        lastModified: new Date().toISOString()
+      };
+
+      // Сохранение метаданных в кэш
+      await videoCacheService.saveMetadata('heroVideoMetadata', videoMetadata);
+      console.log('✓ Метаданные hero видео сохранены в кэш:', videoMetadata);
+
+      return { url, filename, file };
+    } catch (error) {
+      console.error('Ошибка при обработке видео:', error);
+      throw error;
+    }
+  };
+
+  const handleVideoSelect = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      // Очищаем предыдущие медиафайлы перед загрузкой нового видео
+      await clearHeroMediaFromCache('image', 'gif');
+      
+      // Проверка формата
+      if (!file.type.startsWith('video/')) {
+        throw new Error('Пожалуйста, выберите видео файл');
+      }
+
+      const { url, filename, file: videoFile } = await processVideo(file);
+
+      // Обновление данных hero
+      handleChange('backgroundVideo', `/assets/videos/${filename}`);
+
+      // Показ уведомления
+      alert('Видео успешно обработано и сохранено в кэш');
+
+      // Принудительное обновление превью
+      const previewHero = document.querySelector('#hero');
+      if (previewHero) {
+        // Создаем или обновляем видео элемент
+        let heroVideo = previewHero.querySelector('.hero-video');
+        if (!heroVideo) {
+          heroVideo = document.createElement('video');
+          heroVideo.className = 'hero-video';
+          heroVideo.style.position = 'absolute';
+          heroVideo.style.top = '0';
+          heroVideo.style.left = '0';
+          heroVideo.style.width = '100%';
+          heroVideo.style.height = '100%';
+          heroVideo.style.objectFit = 'cover';
+          heroVideo.style.zIndex = '1';
+          previewHero.appendChild(heroVideo);
+        }
+
+        // Обновляем источник видео
+        heroVideo.src = url;
+        heroVideo.autoplay = heroData.videoAutoplay || true;
+        heroVideo.loop = heroData.videoLoop || true;
+        heroVideo.muted = heroData.videoMuted || true;
+        heroVideo.controls = heroData.videoControls || false;
+
+        // Создаем или обновляем оверлей
+        let heroOverlay = previewHero.querySelector('.hero-overlay');
+        if (!heroOverlay) {
+          heroOverlay = document.createElement('div');
+          heroOverlay.className = 'hero-overlay';
+          heroOverlay.style.position = 'absolute';
+          heroOverlay.style.top = '0';
+          heroOverlay.style.left = '0';
+          heroOverlay.style.right = '0';
+          heroOverlay.style.bottom = '0';
+          heroOverlay.style.zIndex = '2';
+          heroOverlay.style.pointerEvents = 'none';
+          previewHero.style.position = 'relative';
+          previewHero.appendChild(heroOverlay);
+        }
+
+        // Применяем размытие и оверлей
+        if (heroData.enableBlur) {
+          heroOverlay.style.backdropFilter = `blur(${heroData.blurAmount || 0.1}px)`;
+        } else {
+          heroOverlay.style.backdropFilter = 'none';
+        }
+
+        if (heroData.enableOverlay) {
+          heroOverlay.style.backgroundColor = `rgba(0, 0, 0, ${heroData.overlayOpacity / 100})`;
+        } else {
+          heroOverlay.style.backgroundColor = 'transparent';
+        }
+      }
+
+      // Принудительное обновление компонента
+      setTimeout(() => {
+        const event = new CustomEvent('heroVideoUpdated', {
+          detail: { 
+            videoUrl: url,
+            blur: heroData.enableBlur ? heroData.blurAmount : 0,
+            overlay: heroData.enableOverlay ? heroData.overlayOpacity : 0
+          }
+        });
+        window.dispatchEvent(event);
+      }, 100);
+    } catch (error) {
+      console.error('Ошибка при загрузке видео:', error);
+      alert('Ошибка при обработке видео: ' + error.message);
+    }
+  };
+
+  const handleGifSelect = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      // Очищаем предыдущие медиафайлы перед загрузкой нового GIF
+      await clearHeroMediaFromCache('image', 'video');
+      
+      // Проверка формата
+      if (file.type !== 'image/gif') {
+        throw new Error('Пожалуйста, выберите GIF файл');
+      }
+
+      // Проверка размера (максимум 10MB для GIF)
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error('Размер GIF не должен превышать 10MB');
+      }
+
+      // Всегда используем hero.gif как имя файла
+      const filename = 'hero.gif';
+
+      // Сохранение в кэш изображений (GIF это тоже изображение)
+      await imageCacheService.saveImage(filename, file);
+
+      // Создание URL для превью
+      const url = URL.createObjectURL(file);
+
+      // Обновление данных hero
+      handleChange('backgroundGif', `/assets/images/${filename}`);
+
+      // Сохранение метаданных GIF
+      const gifMetadata = {
+        filename,
+        type: file.type,
+        size: file.size,
+        lastModified: new Date().toISOString()
+      };
+
+      // Сохранение метаданных в кэш
+      await imageCacheService.saveMetadata('heroGifMetadata', gifMetadata);
+
+      // Показ уведомления
+      alert('GIF успешно обработан и сохранен в кэш');
+
+      // Принудительное обновление превью
+      const previewHero = document.querySelector('#hero');
+      if (previewHero) {
+        // Создаем или обновляем GIF элемент
+        let heroGif = previewHero.querySelector('.hero-gif');
+        if (!heroGif) {
+          heroGif = document.createElement('img');
+          heroGif.className = 'hero-gif';
+          heroGif.style.position = 'absolute';
+          heroGif.style.top = '0';
+          heroGif.style.left = '0';
+          heroGif.style.width = '100%';
+          heroGif.style.height = '100%';
+          heroGif.style.objectFit = 'cover';
+          heroGif.style.zIndex = '1';
+          previewHero.appendChild(heroGif);
+        }
+
+        // Обновляем источник GIF
+        heroGif.src = url;
+
+        // Создаем или обновляем оверлей
+        let heroOverlay = previewHero.querySelector('.hero-overlay');
+        if (!heroOverlay) {
+          heroOverlay = document.createElement('div');
+          heroOverlay.className = 'hero-overlay';
+          heroOverlay.style.position = 'absolute';
+          heroOverlay.style.top = '0';
+          heroOverlay.style.left = '0';
+          heroOverlay.style.right = '0';
+          heroOverlay.style.bottom = '0';
+          heroOverlay.style.zIndex = '2';
+          heroOverlay.style.pointerEvents = 'none';
+          previewHero.style.position = 'relative';
+          previewHero.appendChild(heroOverlay);
+        }
+
+        // Применяем размытие и оверлей
+        if (heroData.enableBlur) {
+          heroOverlay.style.backdropFilter = `blur(${heroData.blurAmount || 0.1}px)`;
+        } else {
+          heroOverlay.style.backdropFilter = 'none';
+        }
+
+        if (heroData.enableOverlay) {
+          heroOverlay.style.backgroundColor = `rgba(0, 0, 0, ${heroData.overlayOpacity / 100})`;
+        } else {
+          heroOverlay.style.backgroundColor = 'transparent';
+        }
+      }
+
+      // Принудительное обновление компонента
+      setTimeout(() => {
+        const event = new CustomEvent('heroGifUpdated', {
+          detail: { 
+            gifUrl: url,
+            blur: heroData.enableBlur ? heroData.blurAmount : 0,
+            overlay: heroData.enableOverlay ? heroData.overlayOpacity : 0
+          }
+        });
+        window.dispatchEvent(event);
+      }, 100);
+    } catch (error) {
+      console.error('Ошибка при загрузке GIF:', error);
+      alert('Ошибка при обработке GIF: ' + error.message);
     }
   };
 
@@ -361,6 +707,8 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
                 <MenuItem value="solid">Сплошной цвет</MenuItem>
                 <MenuItem value="gradient">Градиент</MenuItem>
                 <MenuItem value="image">Изображение</MenuItem>
+                <MenuItem value="video">Видео</MenuItem>
+                <MenuItem value="gif">GIF</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -438,8 +786,103 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
             </Grid>
           )}
 
+          {heroData.backgroundType === 'video' && (
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                <Button
+                  variant="contained"
+                  startIcon={<VideoLibraryIcon />}
+                  onClick={() => videoInputRef.current.click()}
+                  sx={{ minWidth: '200px' }}
+                >
+                  Выбрать видео
+                </Button>
+                <input
+                  type="file"
+                  accept="video/*"
+                  style={{ display: 'none' }}
+                  ref={videoInputRef}
+                  onChange={handleVideoSelect}
+                />
+              </Box>
+              
+              {/* Настройки видео */}
+              <Box sx={{ mt: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                <Typography variant="subtitle2" sx={{ mb: 2 }}>Настройки видео</Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={heroData.videoAutoplay || true}
+                          onChange={(e) => handleChange('videoAutoplay', e.target.checked)}
+                        />
+                      }
+                      label="Автовоспроизведение"
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={heroData.videoLoop || true}
+                          onChange={(e) => handleChange('videoLoop', e.target.checked)}
+                        />
+                      }
+                      label="Зацикливание"
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={heroData.videoMuted || true}
+                          onChange={(e) => handleChange('videoMuted', e.target.checked)}
+                        />
+                      }
+                      label="Без звука"
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={heroData.videoControls || false}
+                          onChange={(e) => handleChange('videoControls', e.target.checked)}
+                        />
+                      }
+                      label="Показывать контролы"
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+            </Grid>
+          )}
+
+          {heroData.backgroundType === 'gif' && (
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                <Button
+                  variant="contained"
+                  startIcon={<ImageIcon />}
+                  onClick={() => gifInputRef.current.click()}
+                  sx={{ minWidth: '200px' }}
+                >
+                  Выбрать GIF
+                </Button>
+                <input
+                  type="file"
+                  accept="image/gif"
+                  style={{ display: 'none' }}
+                  ref={gifInputRef}
+                  onChange={handleGifSelect}
+                />
+              </Box>
+            </Grid>
+          )}
+
           <Grid item xs={12}>
-            <Typography variant="subtitle1" sx={{ mb: 1, mt: 2 }}>Настройки изображения</Typography>
+            <Typography variant="subtitle1" sx={{ mb: 1, mt:2 }}>Настройки изображения</Typography>
             <Divider sx={{ mb: 2 }} />
           </Grid>
 

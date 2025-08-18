@@ -8,6 +8,7 @@ import AiParser from '../components/AiParser/AiParser';
 
 const initialHeaderData = {
   siteName: 'Юридическая компания "Право и Защита"',
+  description: '', // Пустое значение для принудительной синхронизации с hero
   titleColor: '#2196f3',
   backgroundColor: '#e3f2fd',
   linksColor: '#1976d2',
@@ -90,7 +91,7 @@ const initialHeaderData = {
 
 const initialHeroData = {
   title: 'Профессиональные юридические услуги',
-  subtitle: 'Мы предоставляем комплексную юридическую поддержку в различных областях права. Наша команда опытных юристов готова помочь вам с корпоративным правом, судебным представительством, недвижимостью и семейным правом. Более 15 лет успешной практики и сотни довольных клиентов.',
+  subtitle: '',
   backgroundType: 'image',
   backgroundColor: '#ffffff',
   gradientColor1: '#ffffff',

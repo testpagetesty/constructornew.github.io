@@ -1349,9 +1349,18 @@ info@company.com
 
     if (settings.includedSections.MERCI) {
       sectionsPrompt += `=== РАЗДЕЛ: MERCI ===
-[Текст сообщения на выбранном языке, пример: "Спасибо за обращение, с вами свяжется в ближайшее время наш специалист"]
+ВАЖНО: Весь раздел MERCI должен быть СТРОГО на ${languageName}!
 
-[Текст кнопки на выбранном языке, пример: "Закрыть"]
+[Текст сообщения на ${languageName}]
+
+[Текст кнопки на ${languageName}]
+
+Примеры на разных языках:
+- Русский: "Спасибо за обращение, с вами свяжется в ближайшее время наш специалист" / "Закрыть"
+- Английский: "Thank you for your message, our specialist will contact you soon" / "Close"
+- Испанский: "Gracias por su mensaje, nuestro especialista se pondrá en contacto con usted pronto" / "Cerrar"
+- Немецкий: "Vielen Dank für Ihre Nachricht, unser Spezialist wird sich bald mit Ihnen in Verbindung setzen" / "Schließen"
+- Французский: "Merci pour votre message, notre spécialiste vous contactera bientôt" / "Fermer"
 
 === КОНЕЦ РАЗДЕЛА ===\n\n`;
     }
@@ -1449,7 +1458,10 @@ info@company.com
 7. ОБЯЗАТЕЛЬНО: Каждый раздел должен заканчиваться "=== КОНЕЦ РАЗДЕЛА ===" - без исключений!
 8. Проверьте, что ВСЕ разделы имеют закрывающий разделитель, особенно последний раздел
 9. НЕ ПРОПУСКАЙТЕ раздел "=== РАЗДЕЛ: ПРАВОВЫЕ ДОКУМЕНТЫ ===" - он обязателен и должен содержать все три документа!
-10. ВНИМАНИЕ: Убедитесь, что создали ВСЕ указанные разделы, включая правовые документы в самом конце`;
+10. ВНИМАНИЕ: Убедитесь, что создали ВСЕ указанные разделы, включая правовые документы в самом конце
+11. КРИТИЧЕСКИ ВАЖНО ДЛЯ РАЗДЕЛА MERCI:
+    - Сообщение благодарности и текст кнопки ОБЯЗАТЕЛЬНО должны быть на ${languageName}
+    - НЕ использовать русский язык по умолчанию, если выбран другой язык`;
 
     return sectionsPrompt;
   };
@@ -1836,9 +1848,18 @@ info@company.com
 
     if (settings.includedSections.MERCI) {
       sectionsPrompt += `=== РАЗДЕЛ: MERCI ===
-[Текст сообщения на выбранном языке, пример: "Спасибо за обращение, с вами свяжется в ближайшее время наш специалист"]
+ВАЖНО: Весь раздел MERCI должен быть СТРОГО на ${languageName}!
 
-[Текст кнопки на выбранном языке, пример: "Закрыть"]
+[Текст сообщения на ${languageName}]
+
+[Текст кнопки на ${languageName}]
+
+Примеры на разных языках:
+- Русский: "Спасибо за обращение, с вами свяжется в ближайшее время наш специалист" / "Закрыть"
+- Английский: "Thank you for your message, our specialist will contact you soon" / "Close"
+- Испанский: "Gracias por su mensaje, nuestro especialista se pondrá en contacto con usted pronto" / "Cerrar"
+- Немецкий: "Vielen Dank für Ihre Nachricht, unser Spezialist wird sich bald mit Ihnen in Verbindung setzen" / "Schließen"
+- Французский: "Merci pour votre message, notre spécialiste vous contactera bientôt" / "Fermer"
 
 === КОНЕЦ РАЗДЕЛА ===
 
@@ -1854,7 +1875,10 @@ info@company.com
 6. КРИТИЧЕСКИ ВАЖНО ДЛЯ АДРЕСОВ:
    - Использовать только РЕАЛЬНЫЕ адреса, которые существуют на Google Maps для страны ${selectedCountry}
    - НЕ использовать: известные улицы/места, правительственные здания, достопримечательности
-   - Использовать адреса обычных бизнес-центров, офисных зданий, торговых центров`;
+   - Использовать адреса обычных бизнес-центров, офисных зданий, торговых центров
+7. КРИТИЧЕСКИ ВАЖНО ДЛЯ РАЗДЕЛА MERCI:
+   - Сообщение благодарности и текст кнопки ОБЯЗАТЕЛЬНО должны быть на ${languageName}
+   - НЕ использовать русский язык по умолчанию, если выбран другой язык`;
 
     return sectionsPrompt;
   };
@@ -2237,17 +2261,42 @@ info@company.com
                   updatedHeroData.subtitle = parsedData.hero.description;
                 }
                 
-                // Применяем обновления hero
+                // Сначала обновляем headerData с новым description
+                const updatedHeaderData = { ...headerData };
+                let headerNeedsUpdate = false;
+                
+                if (parsedData.hero.siteName) {
+                  updatedHeaderData.siteName = parsedData.hero.siteName;
+                  headerNeedsUpdate = true;
+                }
+                
+                // Автоматически обновляем description из hero.description
+                if (parsedData.hero.description) {
+                  console.log('🔄 Обновляю headerData.description из hero.description:', parsedData.hero.description);
+                  updatedHeaderData.description = parsedData.hero.description;
+                  headerNeedsUpdate = true;
+                  console.log('🔄 Новое значение updatedHeaderData.description:', updatedHeaderData.description);
+                }
+                
+                if (headerNeedsUpdate) {
+                  console.log('🔄 AiParser: Вызываю onHeaderChange с обновленными данными:', updatedHeaderData);
+                  onHeaderChange(updatedHeaderData);
+                }
+                
+                // Затем применяем обновления hero
+                console.log('🔄 AiParser: Вызываю onHeroChange с обновленными данными:', updatedHeroData);
                 onHeroChange(updatedHeroData);
                 
-                // Обновляем название сайта в headerData
-                if (parsedData.hero.siteName) {
-                  // Создаем копию headerData для обновления
-                  const updatedHeaderData = { 
-                    ...headerData,
-                    siteName: parsedData.hero.siteName
-                  };
-                  onHeaderChange(updatedHeaderData);
+                // Принудительно обновляем description еще раз после обновления hero
+                if (parsedData.hero.description) {
+                  console.log('🔄 AiParser: Принудительно обновляю description после onHeroChange:', parsedData.hero.description);
+                  // Обновляем description напрямую без setTimeout
+                  onHeaderChange(prev => {
+                    console.log('🔄 Принудительное обновление: предыдущее значение:', prev.description);
+                    const updated = { ...prev, description: parsedData.hero.description };
+                    console.log('🔄 Принудительное обновление: новое значение:', updated.description);
+                    return updated;
+                  });
                 }
               }
               

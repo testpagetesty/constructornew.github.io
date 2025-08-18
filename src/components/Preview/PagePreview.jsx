@@ -1502,6 +1502,8 @@ const PagePreview = ({
               subtitle={heroData.subtitle}
               backgroundType={heroData.backgroundType}
               backgroundImage={heroData.backgroundImage}
+              backgroundVideo={heroData.backgroundVideo}
+              backgroundGif={heroData.backgroundGif}
               backgroundColor={heroData.backgroundColor}
               gradientColor1={heroData.gradientColor1}
               gradientColor2={heroData.gradientColor2}
@@ -1513,6 +1515,10 @@ const PagePreview = ({
               overlayOpacity={heroData.overlayOpacity}
               enableBlur={heroData.enableBlur}
               blurAmount={heroData.blurAmount}
+              videoAutoplay={heroData.videoAutoplay}
+              videoLoop={heroData.videoLoop}
+              videoMuted={heroData.videoMuted}
+              videoControls={heroData.videoControls}
             />
           </Box>
           {Object.entries(sectionsData || {}).map(([sectionId, sectionContent]) => (

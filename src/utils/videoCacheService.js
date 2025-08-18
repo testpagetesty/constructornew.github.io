@@ -1,11 +1,11 @@
-const CACHE_NAME = 'site-images-cache-v1';
-const METADATA_CACHE_NAME = 'site-images-metadata-v1';
+const CACHE_NAME = 'site-videos-cache-v1';
+const METADATA_CACHE_NAME = 'site-videos-metadata-v1';
 
-class ImageCacheService {
+class VideoCacheService {
   constructor() {
     this.db = null;
-    this.dbName = 'site-images-db';
-    this.storeName = 'images';
+    this.dbName = 'site-videos-db';
+    this.storeName = 'videos';
     this.init();
   }
 
@@ -30,24 +30,24 @@ class ImageCacheService {
     });
   }
 
-  async saveImage(key, blob) {
+  async saveVideo(key, file) {
     try {
       await this.init();
       return new Promise((resolve, reject) => {
         const transaction = this.db.transaction([this.storeName], 'readwrite');
         const store = transaction.objectStore(this.storeName);
-        const request = store.put(blob, key);
+        const request = store.put(file, key);
 
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error('Error saving image to cache:', error);
+      console.error('Error saving video to cache:', error);
       throw error;
     }
   }
 
-  async getImage(key) {
+  async getVideo(key) {
     try {
       await this.init();
       return new Promise((resolve, reject) => {
@@ -59,12 +59,12 @@ class ImageCacheService {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error('Error getting image from cache:', error);
+      console.error('Error getting video from cache:', error);
       throw error;
     }
   }
 
-  async deleteImage(key) {
+  async deleteVideo(key) {
     try {
       await this.init();
       return new Promise((resolve, reject) => {
@@ -76,7 +76,7 @@ class ImageCacheService {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error('Error deleting image from cache:', error);
+      console.error('Error deleting video from cache:', error);
       throw error;
     }
   }
@@ -108,8 +108,8 @@ class ImageCacheService {
     }
   }
 
-  // Получить все изображения из кэша с ключами
-  async getAllImages() {
+  // Получить все видео из кэша с ключами
+  async getAllVideos() {
     try {
       await this.init();
       return new Promise((resolve, reject) => {
@@ -120,27 +120,27 @@ class ImageCacheService {
         request.onsuccess = async () => {
           try {
             const keys = request.result;
-            const imagesWithKeys = [];
+            const videosWithKeys = [];
             
             for (const key of keys) {
               try {
-                const image = await this.getImage(key);
-                if (image) {
-                  imagesWithKeys.push({
+                const video = await this.getVideo(key);
+                if (video) {
+                  videosWithKeys.push({
                     key: key,
-                    value: image,
+                    value: video,
                     name: key,
-                    blob: image,
-                    size: image.size,
-                    type: image.type
+                    blob: video,
+                    size: video.size || 0,
+                    type: video.type || 'video/mp4'
                   });
                 }
-              } catch (imageError) {
-                console.warn(`Error getting image with key ${key}:`, imageError);
+              } catch (videoError) {
+                console.warn(`Error getting video with key ${key}:`, videoError);
               }
             }
             
-            resolve(imagesWithKeys);
+            resolve(videosWithKeys);
           } catch (error) {
             reject(error);
           }
@@ -149,41 +149,12 @@ class ImageCacheService {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error('Error getting all images from cache:', error);
+      console.error('Error getting all videos from cache:', error);
       throw error;
     }
   }
 
-  // Получить все ключи изображений из кэша
-  async getAllImageKeys() {
-    try {
-      await this.init();
-      return new Promise((resolve, reject) => {
-        const transaction = this.db.transaction([this.storeName], 'readonly');
-        const store = transaction.objectStore(this.storeName);
-        const request = store.getAllKeys();
-
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-      });
-    } catch (error) {
-      console.error('Error getting all image keys from cache:', error);
-      throw error;
-    }
-  }
-
-  // Получить размер кэша
-  async getCacheSize() {
-    try {
-      const images = await this.getAllImages();
-      return images.reduce((total, image) => total + (image.size || 0), 0);
-    } catch (error) {
-      console.error('Error getting cache size:', error);
-      return 0;
-    }
-  }
-
-  // Очистить весь кэш изображений
+  // Очистить весь кэш видео
   async clearCache() {
     try {
       await this.init();
@@ -196,10 +167,74 @@ class ImageCacheService {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error('Error clearing image cache:', error);
+      console.error('Error clearing video cache:', error);
+      throw error;
+    }
+  }
+
+  // Получить все ключи видео из кэша
+  async getAllVideoKeys() {
+    try {
+      await this.init();
+      return new Promise((resolve, reject) => {
+        const transaction = this.db.transaction([this.storeName], 'readonly');
+        const store = transaction.objectStore(this.storeName);
+        const request = store.getAllKeys();
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    } catch (error) {
+      console.error('Error getting all video keys from cache:', error);
+      throw error;
+    }
+  }
+
+  // Получить размер кэша
+  async getCacheSize() {
+    try {
+      const videos = await this.getAllVideos();
+      return videos.reduce((total, video) => total + (video.size || 0), 0);
+    } catch (error) {
+      console.error('Error getting cache size:', error);
+      return 0;
+    }
+  }
+
+  // Простой метод для получения всех видео (более надежный)
+  async getAllVideosSimple() {
+    try {
+      await this.init();
+      return new Promise((resolve, reject) => {
+        const transaction = this.db.transaction([this.storeName], 'readonly');
+        const store = transaction.objectStore(this.storeName);
+        const request = store.getAll();
+
+        request.onsuccess = () => {
+          const videos = request.result;
+          console.log('Raw videos from IndexedDB:', videos);
+          
+          // Преобразуем в нужный формат
+          const formattedVideos = videos.map((video, index) => ({
+            key: `video_${index}`,
+            value: video,
+            name: `video_${index}`,
+            blob: video,
+            size: video.size || 0,
+            type: video.type || 'video/mp4'
+          }));
+          
+          console.log('Formatted videos:', formattedVideos);
+          resolve(formattedVideos);
+        };
+        
+        request.onerror = () => reject(request.error);
+      });
+    } catch (error) {
+      console.error('Error getting all videos simple:', error);
       throw error;
     }
   }
 }
 
-export const imageCacheService = new ImageCacheService(); 
+export const videoCacheService = new VideoCacheService();
