@@ -1916,7 +1916,7 @@ const EditorPanel = ({
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="stylesheet" href="assets/css/styles.css">
-  <meta name="description" content="${data.headerData.description || 'Our site offers the best solutions'}">
+  <meta name="description" content="${data.headerData.description || data.heroData?.subtitle || 'Our site offers the best solutions'}">
   ${data.headerData.domain ? `<link rel="canonical" href="https://${data.headerData.domain}" />` : ''}
   <style>
     /* Live Chat Styles */
@@ -5270,7 +5270,7 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
           siteName: headerData.siteName || 'My Site',
           title: headerData.title || headerData.siteName || 'My Site',
           domain: headerData.domain || '',
-          description: headerData.description || 'Our site offers the best solutions',
+          description: headerData.description || heroData.subtitle || 'Our site offers the best solutions',
           menuItems: headerData.menuItems || [],
           siteBackgroundImage: headerData.siteBackgroundType === 'image' ? 'assets/images/fon.jpg' : '',
           language: headerData.language || 'ru',
@@ -5295,7 +5295,12 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
           subtitle: heroData.subtitle || '',
           buttonText: heroData.buttonText || '',
           backgroundImage: heroData.backgroundImage ? 'assets/images/' + heroData.backgroundImage.split('/').pop() : '',
-          backgroundGif: heroData.backgroundGif ? 'assets/images/' + heroData.backgroundGif.split('/').pop() : ''
+          backgroundGif: heroData.backgroundGif ? 'assets/images/' + heroData.backgroundGif.split('/').pop() : '',
+          // Настройки обрезки видео
+          videoCropBottom: heroData.videoCropBottom || false,
+          videoCropRight: heroData.videoCropRight || false,
+          videoCropTop: heroData.videoCropTop || false,
+          videoRemovePostback: heroData.videoRemovePostback || false
         },
         sectionsData: sectionsArray,
         contactData: {
@@ -5337,6 +5342,11 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
 
       console.log('🚀 handleDownloadSite - siteData:', siteData);
       console.log('🚀 handleDownloadSite - siteData.liveChatData:', siteData.liveChatData);
+      console.log('🔍 Meta description debug in handleDownloadSite:', {
+        headerDescription: headerData.description,
+        heroSubtitle: heroData.subtitle,
+        finalDescription: headerData.description || heroData.subtitle || 'Our site offers the best solutions'
+      });
 
       // Process and add chat operator photo if live chat is enabled
       if (siteData.liveChatData?.enabled) {
@@ -6796,7 +6806,7 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
         ...data.headerData,
         siteName: data.headerData.siteName || 'My Site',
         title: data.headerData.siteName || 'My Site',
-        description: data.headerData.description || 'Our site offers the best solutions',
+        description: data.headerData.description || data.heroData?.subtitle || 'Our site offers the best solutions',
         menuItems: data.headerData.menuItems || [],
         siteBackgroundImage: data.headerData.siteBackgroundType === 'image' ? 'assets/images/fon.jpg' : '',
         language: data.headerData.language || 'en',
@@ -6819,7 +6829,12 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
         ...data.heroData,
         backgroundImage: data.heroData.backgroundImage ? 'assets/images/' + data.heroData.backgroundImage.split('/').pop() : '',
         backgroundVideo: data.heroData.backgroundVideo ? 'assets/videos/' + data.heroData.backgroundVideo.split('/').pop() : '',
-        backgroundGif: data.heroData.backgroundGif ? 'assets/images/' + data.heroData.backgroundGif.split('/').pop() : ''
+        backgroundGif: data.heroData.backgroundGif ? 'assets/images/' + data.heroData.backgroundGif.split('/').pop() : '',
+        // Настройки обрезки видео
+        videoCropBottom: data.heroData.videoCropBottom || false,
+        videoCropRight: data.heroData.videoCropRight || false,
+        videoCropTop: data.heroData.videoCropTop || false,
+        videoRemovePostback: data.heroData.videoRemovePostback || false
       },
       sectionsData: data.sectionsData,
       contactData: data.contactData,
@@ -6907,7 +6922,7 @@ EOL;
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="stylesheet" href="assets/css/styles.css">
-  <meta name="description" content="${data.headerData.description || 'Our site offers the best solutions'}">
+  <meta name="description" content="${data.headerData.description || data.heroData?.subtitle || 'Our site offers the best solutions'}">
   <style>
     /* Live Chat Styles */
     ${data.liveChatData?.enabled ? generateLiveChatCSS() : ''}

@@ -104,7 +104,12 @@ const initialHeroData = {
   enableOverlay: true,
   overlayOpacity: 0.1,
   enableBlur: true,
-  blurAmount: 0.1
+  blurAmount: 0.1,
+  // Настройки обрезки видео по умолчанию выключены
+  videoCropBottom: false,
+  videoCropRight: false,
+  videoCropTop: false,
+  videoRemovePostback: false
 };
 
 const initialSectionsData = [];

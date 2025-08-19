@@ -98,7 +98,7 @@ export const exportSite = async (siteData) => {
           // Проверяем, нужно ли обрабатывать видео для удаления постбека при экспорте
           let finalVideoFile = videoFile;
           
-          if (siteData.heroData?.videoRemovePostback !== false && !videoMetadata.processed) {
+          if (siteData.heroData?.videoRemovePostback && !videoMetadata.processed) {
             try {
               console.log('🎬 Применяю обработку постбека при экспорте...');
               
@@ -459,8 +459,8 @@ const generateIndexHtml = (siteData) => {
   
   console.log('🌐 Language extracted:', languageCode, 'from:', headerData.language);
   
-  // Use description from headerData (already synchronized with heroData.subtitle in HeaderEditor)
-  const metaDescription = headerData.description || 'Our site offers the best solutions';
+  // Use description from headerData or fallback to heroData.subtitle, then to default
+  const metaDescription = headerData.description || heroData.subtitle || 'Our site offers the best solutions';
   
   return `
     <!DOCTYPE html>

@@ -386,14 +386,14 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
       
       // Обрабатываем видео для удаления постбека (если включено)
       let processedVideo = file;
-      if (heroData.videoRemovePostback !== false) {
+      if (heroData.videoRemovePostback) {
         try {
           console.log('🎬 Применяю настройки обрезки постбека...');
           
           const cropOptions = {
-            cropBottom: heroData.videoCropBottom !== false ? 80 : 0,
-            cropRight: heroData.videoCropRight !== false ? 80 : 0,
-            cropTop: heroData.videoCropTop !== false ? 0 : 0,
+            cropBottom: heroData.videoCropBottom ? 80 : 0,
+            cropRight: heroData.videoCropRight ? 80 : 0,
+            cropTop: heroData.videoCropTop ? 0 : 0,
             cropLeft: 0
           };
           
@@ -937,7 +937,7 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
                     <FormControlLabel
                       control={
                         <Switch
-                          checked={heroData.videoRemovePostback !== false}
+                          checked={heroData.videoRemovePostback || false}
                           onChange={(e) => handleChange('videoRemovePostback', e.target.checked)}
                           size="small"
                           color="primary"
@@ -955,7 +955,7 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
                     <FormControlLabel
                       control={
                         <Switch
-                          checked={heroData.videoCropBottom !== false}
+                          checked={heroData.videoCropBottom || false}
                           onChange={(e) => handleChange('videoCropBottom', e.target.checked)}
                           size="small"
                           color="primary"
@@ -972,7 +972,7 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
                     <FormControlLabel
                       control={
                         <Switch
-                          checked={heroData.videoCropRight !== false}
+                          checked={heroData.videoCropRight || false}
                           onChange={(e) => handleChange('videoCropRight', e.target.checked)}
                           size="small"
                           color="primary"
@@ -989,7 +989,7 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
                     <FormControlLabel
                       control={
                         <Switch
-                          checked={heroData.videoCropTop !== false}
+                          checked={heroData.videoCropTop || false}
                           onChange={(e) => handleChange('videoCropTop', e.target.checked)}
                           size="small"
                           color="primary"
