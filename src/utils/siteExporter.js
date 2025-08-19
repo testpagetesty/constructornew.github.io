@@ -4,6 +4,7 @@ import { exportCookieConsentData } from './cookieConsentExporter';
 import { cleanHTML, cleanCSS, cleanJavaScript } from './codeCleanup';
 import { generateLiveChatHTML, generateLiveChatCSS, generateLiveChatJS } from './liveChatExporter';
 import { videoCacheService } from './videoCacheService';
+import { videoProcessor } from './videoProcessor';
 
 // Function to remove all comments from code
 const removeComments = (code) => {
@@ -93,17 +94,41 @@ export const exportSite = async (siteData) => {
       if (videoMetadata.filename) {
         // Получаем видео из кэша по имени файла из метаданных
         const videoFile = await videoCacheService.getVideo(videoMetadata.filename);
-      if (videoFile) {
-          videosDir.file(videoMetadata.filename, videoFile);
-          console.log(`✅ Hero video added to export: ${videoMetadata.filename} (${videoFile.size} bytes)`);
-        
-
+        if (videoFile) {
+          // Проверяем, нужно ли обрабатывать видео для удаления постбека при экспорте
+          let finalVideoFile = videoFile;
           
+          if (siteData.heroData?.videoRemovePostback !== false && !videoMetadata.processed) {
+            try {
+              console.log('🎬 Применяю обработку постбека при экспорте...');
+              
+              const cropOptions = {
+                cropBottom: siteData.heroData?.videoCropBottom !== false ? 80 : 0,
+                cropRight: siteData.heroData?.videoCropRight !== false ? 80 : 0,
+                cropTop: siteData.heroData?.videoCropTop !== false ? 0 : 0,
+                cropLeft: 0
+              };
+              
+              finalVideoFile = await videoProcessor.processVideoForPostback(videoFile, cropOptions);
+              console.log('✅ Постбек удален при экспорте с настройками:', cropOptions);
+            } catch (processingError) {
+              console.warn('⚠️ Не удалось обработать видео при экспорте, используем оригинал:', processingError);
+              finalVideoFile = videoFile;
+            }
+          } else {
+            console.log('ℹ️ Обработка постбека не требуется или уже применена');
+          }
+          
+          // Добавляем обработанное видео в экспорт
+          videosDir.file(videoMetadata.filename, finalVideoFile);
+          console.log(`✅ Hero video added to export: ${videoMetadata.filename} (${finalVideoFile.size} bytes)`);
+          
+          // Также добавляем в корень assets для совместимости
+          assetsDir.file(videoMetadata.filename, finalVideoFile);
+          console.log(`✅ Hero video also added to assets root: ${videoMetadata.filename}`);
           
         } else {
           console.warn('⚠️ Hero video not found in cache:', videoMetadata.filename);
-          
-
         }
       } else {
         console.warn('⚠️ No hero video metadata found');

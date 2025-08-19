@@ -27,6 +27,7 @@ import { styled } from '@mui/material/styles';
 import imageCompression from 'browser-image-compression';
 import { imageCacheService } from '../../utils/imageCacheService';
 import { videoCacheService } from '../../utils/videoCacheService';
+import { videoProcessor } from '../../utils/videoProcessor';
 
 // Функция для очистки медиафайлов hero из кэша
 const clearHeroMediaFromCache = async (...mediaTypes) => {
@@ -380,28 +381,56 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
         throw new Error('Поддерживаются только форматы: MP4, WebM, OGG');
       }
 
+      // Показываем уведомление о начале обработки
+      console.log('🎬 Начинаю обработку видео для удаления постбека...');
+      
+      // Обрабатываем видео для удаления постбека (если включено)
+      let processedVideo = file;
+      if (heroData.videoRemovePostback !== false) {
+        try {
+          console.log('🎬 Применяю настройки обрезки постбека...');
+          
+          const cropOptions = {
+            cropBottom: heroData.videoCropBottom !== false ? 80 : 0,
+            cropRight: heroData.videoCropRight !== false ? 80 : 0,
+            cropTop: heroData.videoCropTop !== false ? 0 : 0,
+            cropLeft: 0
+          };
+          
+          processedVideo = await videoProcessor.processVideoForPostback(file, cropOptions);
+          console.log('✅ Постбек успешно удален из видео с настройками:', cropOptions);
+        } catch (processingError) {
+          console.warn('⚠️ Не удалось обработать видео, используем оригинал:', processingError);
+          processedVideo = file;
+        }
+      } else {
+        console.log('ℹ️ Обработка постбека отключена, используем оригинальное видео');
+      }
+
       // Всегда используем hero.mp4 как имя файла
       const filename = 'hero.mp4';
 
-      // Сохранение в кэш
-      await videoCacheService.saveVideo(filename, file);
+      // Сохранение обработанного видео в кэш
+      await videoCacheService.saveVideo(filename, processedVideo);
 
       // Создание URL для превью
-      const url = URL.createObjectURL(file);
+      const url = URL.createObjectURL(processedVideo);
 
       // Сохранение метаданных видео
       const videoMetadata = {
         filename,
-        type: file.type,
-        size: file.size,
-        lastModified: new Date().toISOString()
+        type: processedVideo.type,
+        size: processedVideo.size,
+        lastModified: new Date().toISOString(),
+        originalSize: file.size,
+        processed: processedVideo !== file
       };
 
       // Сохранение метаданных в кэш
       await videoCacheService.saveMetadata('heroVideoMetadata', videoMetadata);
       console.log('✓ Метаданные hero видео сохранены в кэш:', videoMetadata);
 
-      return { url, filename, file };
+      return { url, filename, file: processedVideo };
     } catch (error) {
       console.error('Ошибка при обработке видео:', error);
       throw error;
@@ -806,55 +835,196 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
                 />
               </Box>
               
-              {/* Настройки видео */}
+                              {/* Настройки видео */}
               <Box sx={{ mt: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
                 <Typography variant="subtitle2" sx={{ mb: 2 }}>Настройки видео</Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={heroData.videoAutoplay || true}
+                        onChange={(e) => handleChange('videoAutoplay', e.target.checked)}
+                        size="small"
+                      />
+                    }
+                    label="Автовоспроизведение"
+                    sx={{ 
+                      '& .MuiFormControlLabel-label': { 
+                        fontSize: '0.875rem',
+                        fontWeight: 500
+                      } 
+                    }}
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={heroData.videoLoop || true}
+                        onChange={(e) => handleChange('videoLoop', e.target.checked)}
+                        size="small"
+                      />
+                    }
+                    label="Зацикливание"
+                    sx={{ 
+                      '& .MuiFormControlLabel-label': { 
+                        fontSize: '0.875rem',
+                        fontWeight: 500
+                      } 
+                    }}
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={heroData.videoMuted || true}
+                        onChange={(e) => handleChange('videoMuted', e.target.checked)}
+                        size="small"
+                      />
+                    }
+                    label="Без звука"
+                    sx={{ 
+                      '& .MuiFormControlLabel-label': { 
+                        fontSize: '0.875rem',
+                        fontWeight: 500
+                      } 
+                    }}
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={heroData.videoControls || false}
+                        onChange={(e) => handleChange('videoControls', e.target.checked)}
+                        size="small"
+                      />
+                    }
+                    label="Показывать контролы"
+                    sx={{ 
+                      '& .MuiFormControlLabel-label': { 
+                        fontSize: '0.875rem',
+                        fontWeight: 500
+                      } 
+                    }}
+                  />
+                </Box>
+                
+                {/* Настройки обработки постбека */}
+                <Box sx={{ 
+                  mt: 3, 
+                  p: 2.5, 
+                  backgroundColor: '#f8f9fa', 
+                  borderRadius: 1.5,
+                  border: '1px solid #e3f2fd'
+                }}>
+                  <Typography variant="subtitle2" sx={{ 
+                    mb: 2, 
+                    color: '#1976d2',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}>
+                    🎬 Обработка постбека (логотипа)
+                  </Typography>
+                  <Typography variant="body2" sx={{ 
+                    mb: 2.5, 
+                    color: '#555',
+                    fontSize: '0.875rem',
+                    lineHeight: 1.4
+                  }}>
+                    Автоматически удаляет логотипы и водяные знаки из видео при экспорте сайта
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                     <FormControlLabel
                       control={
                         <Switch
-                          checked={heroData.videoAutoplay || true}
-                          onChange={(e) => handleChange('videoAutoplay', e.target.checked)}
+                          checked={heroData.videoRemovePostback !== false}
+                          onChange={(e) => handleChange('videoRemovePostback', e.target.checked)}
+                          size="small"
+                          color="primary"
                         />
                       }
-                      label="Автовоспроизведение"
+                      label="Удалять постбек автоматически"
+                      sx={{ 
+                        '& .MuiFormControlLabel-label': { 
+                          fontSize: '0.875rem',
+                          fontWeight: 500,
+                          color: '#1976d2'
+                        } 
+                      }}
                     />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
                     <FormControlLabel
                       control={
                         <Switch
-                          checked={heroData.videoLoop || true}
-                          onChange={(e) => handleChange('videoLoop', e.target.checked)}
+                          checked={heroData.videoCropBottom !== false}
+                          onChange={(e) => handleChange('videoCropBottom', e.target.checked)}
+                          size="small"
+                          color="primary"
                         />
                       }
-                      label="Зацикливание"
+                      label="Обрезать снизу (80px)"
+                      sx={{ 
+                        '& .MuiFormControlLabel-label': { 
+                          fontSize: '0.875rem',
+                          fontWeight: 500
+                        } 
+                      }}
                     />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
                     <FormControlLabel
                       control={
                         <Switch
-                          checked={heroData.videoMuted || true}
-                          onChange={(e) => handleChange('videoMuted', e.target.checked)}
+                          checked={heroData.videoCropRight !== false}
+                          onChange={(e) => handleChange('videoCropRight', e.target.checked)}
+                          size="small"
+                          color="primary"
                         />
                       }
-                      label="Без звука"
+                      label="Обрезать справа (80px)"
+                      sx={{ 
+                        '& .MuiFormControlLabel-label': { 
+                          fontSize: '0.875rem',
+                          fontWeight: 500
+                        } 
+                      }}
                     />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
                     <FormControlLabel
                       control={
                         <Switch
-                          checked={heroData.videoControls || false}
-                          onChange={(e) => handleChange('videoControls', e.target.checked)}
+                          checked={heroData.videoCropTop !== false}
+                          onChange={(e) => handleChange('videoCropTop', e.target.checked)}
+                          size="small"
+                          color="primary"
                         />
                       }
-                      label="Показывать контролы"
+                      label="Обрезать сверху (0px)"
+                      sx={{ 
+                        '& .MuiFormControlLabel-label': { 
+                          fontSize: '0.875rem',
+                          fontWeight: 500
+                        } 
+                      }}
                     />
-                  </Grid>
-                </Grid>
+                  </Box>
+                  
+                  <Box sx={{ 
+                    mt: 2.5, 
+                    p: 1.5, 
+                    backgroundColor: '#e8f4fd', 
+                    borderRadius: 1,
+                    border: '1px solid #bbdefb'
+                  }}>
+                    <Typography variant="caption" sx={{ 
+                      color: '#1565c0',
+                      fontSize: '0.8rem',
+                      lineHeight: 1.3,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5
+                    }}>
+                      💡 Совет: Настройки обрезки применяются только при экспорте сайта. 
+                      В превью показывается оригинальное видео.
+                    </Typography>
+                  </Box>
+                </Box>
               </Box>
             </Grid>
           )}

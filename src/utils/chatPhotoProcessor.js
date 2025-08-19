@@ -11,7 +11,7 @@ export const getRandomOperatorPhoto = async () => {
     
     // Проверяем существование папки
     if (!fs.existsSync(chatImagesDir)) {
-      console.warn('❌ Chat images directory not found');
+      console.warn('❌ Chat images directory not found:', chatImagesDir);
       return null;
     }
 
@@ -23,9 +23,11 @@ export const getRandomOperatorPhoto = async () => {
     });
 
     if (imageFiles.length === 0) {
-      console.warn('❌ No images found in chat directory');
+      console.warn('❌ No images found in chat directory:', chatImagesDir);
       return null;
     }
+
+    console.log(`📁 Found ${imageFiles.length} images in chat directory`);
 
     // Случайно выбираем фото
     const randomIndex = Math.floor(Math.random() * imageFiles.length);
@@ -33,6 +35,21 @@ export const getRandomOperatorPhoto = async () => {
     const selectedPath = path.join(chatImagesDir, selectedFile);
 
     console.log(`🎲 Selected random photo: ${selectedFile}`);
+
+    // Проверяем существование файла
+    if (!fs.existsSync(selectedPath)) {
+      console.warn(`❌ Selected file does not exist: ${selectedPath}`);
+      return null;
+    }
+
+    // Проверяем размер файла
+    const stats = fs.statSync(selectedPath);
+    if (stats.size === 0) {
+      console.warn(`❌ Selected file is empty: ${selectedFile}`);
+      return null;
+    }
+
+    console.log(`📊 File size: ${stats.size} bytes`);
 
     // Оптимизируем изображение для чата
     const optimizedBuffer = await sharp(selectedPath)
@@ -46,6 +63,11 @@ export const getRandomOperatorPhoto = async () => {
       })
       .toBuffer();
 
+    if (!optimizedBuffer || optimizedBuffer.length === 0) {
+      console.warn('❌ Optimization produced empty buffer');
+      return null;
+    }
+
     console.log(`✅ Photo optimized: ${optimizedBuffer.length} bytes`);
 
     return {
@@ -56,6 +78,16 @@ export const getRandomOperatorPhoto = async () => {
 
   } catch (error) {
     console.error('❌ Error processing operator photo:', error);
+    
+    // Более детальная информация об ошибке
+    if (error.code === 'ENOENT') {
+      console.error('❌ File not found error');
+    } else if (error.message.includes('sharp')) {
+      console.error('❌ Sharp image processing error');
+    } else if (error.message.includes('permission')) {
+      console.error('❌ Permission denied error');
+    }
+    
     return null;
   }
 }; 

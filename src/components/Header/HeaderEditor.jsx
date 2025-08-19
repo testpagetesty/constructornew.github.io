@@ -206,7 +206,7 @@ const HeaderEditor = ({ headerData, onHeaderChange, expanded, setExpanded }) => 
                           Скорость (секунды)
                         </Typography>
                         <Slider
-                          value={headerData.runningLine?.speed || 35}
+                          value={headerData.runningLine?.speed || 25}
                           onChange={(e, value) => onHeaderChange({
                             ...headerData,
                             runningLine: {
@@ -214,7 +214,7 @@ const HeaderEditor = ({ headerData, onHeaderChange, expanded, setExpanded }) => 
                               speed: value
                             }
                           })}
-                          min={10}
+                          min={12}
                           max={100}
                           step={5}
                           marks

@@ -1299,7 +1299,7 @@ const EditorPanel = ({
     runningLine: {
       enabled: false,
       text: '',
-      speed: 10,
+      speed: 25,
       backgroundColor: '#1976d2',
       textColor: '#ffffff',
       fontSize: '20px',
@@ -3296,7 +3296,7 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
   };
 
   const generateCSS = (data = {}) => {
-    const runningLineSpeed = data?.headerData?.runningLine?.speed || 10;
+          const runningLineSpeed = data?.headerData?.runningLine?.speed || 25;
     return `
       /* Base styles */
       * {
@@ -3563,7 +3563,7 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         
         .running-line-text {
           font-size: ${Math.max(parseInt(data?.headerData?.runningLine?.fontSize || '20') - 2, 12)}px;
-          animation-duration: ${Math.max(runningLineSpeed * 0.9, 12)}s !important;
+          animation-duration: ${Math.max(runningLineSpeed * 0.9, 18)}s !important;
         }
       }
 
@@ -3579,7 +3579,7 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         
         .running-line-text {
           font-size: ${Math.max(parseInt(data?.headerData?.runningLine?.fontSize || '20') - 4, 10)}px;
-          animation-duration: ${Math.max(runningLineSpeed * 0.8, 10)}s !important;
+          animation-duration: ${Math.max(runningLineSpeed * 0.8, 16)}s !important;
         }
       }
 
@@ -5278,7 +5278,7 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
             ...headerData.runningLine,
             enabled: headerData.runningLine?.enabled || false,
             text: headerData.runningLine?.text || '',
-            speed: headerData.runningLine?.speed || 10,
+            speed: headerData.runningLine?.speed || 25,
             backgroundColor: headerData.runningLine?.backgroundColor || '#1976d2',
             textColor: headerData.runningLine?.textColor || '#ffffff',
             fontSize: headerData.runningLine?.fontSize || '20px',
@@ -5340,27 +5340,58 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
 
       // Process and add chat operator photo if live chat is enabled
       if (siteData.liveChatData?.enabled) {
-        try {
-          console.log('🎭 Processing chat operator photo...');
-          const response = await fetch('/api/process-chat-photo', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            }
-          });
-          
-          if (response.ok) {
-            const photoBlob = await response.blob();
-            const originalFile = response.headers.get('X-Original-File');
-            const photoSize = response.headers.get('X-Photo-Size');
+        let photoProcessed = false;
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (!photoProcessed && retryCount < maxRetries) {
+          try {
+            console.log(`🎭 Processing chat operator photo... (attempt ${retryCount + 1}/${maxRetries})`);
+            const response = await fetch('/api/process-chat-photo', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            });
             
-            imagesFolder.file('operator.jpg', photoBlob);
-            console.log(`✅ Chat operator photo added to export: ${originalFile} (${photoSize} bytes)`);
-          } else {
-            console.warn('⚠️ Could not process chat operator photo:', response.status);
+            if (response.ok) {
+              const photoBlob = await response.blob();
+              const originalFile = response.headers.get('X-Original-File');
+              const photoSize = response.headers.get('X-Photo-Size');
+              
+              if (photoBlob && photoBlob.size > 0) {
+                imagesFolder.file('operator.jpg', photoBlob);
+                console.log(`✅ Chat operator photo added to export: ${originalFile} (${photoSize} bytes)`);
+                photoProcessed = true;
+              } else {
+                console.warn(`⚠️ Photo blob is empty or invalid (attempt ${retryCount + 1})`);
+                retryCount++;
+                if (retryCount < maxRetries) {
+                  console.log('🔄 Retrying in 1 second...');
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+              }
+            } else {
+              console.warn(`⚠️ Could not process chat operator photo (attempt ${retryCount + 1}):`, response.status);
+              retryCount++;
+              if (retryCount < maxRetries) {
+                console.log('🔄 Retrying in 1 second...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+            }
+          } catch (error) {
+            console.error(`❌ Error processing chat operator photo (attempt ${retryCount + 1}):`, error);
+            retryCount++;
+            if (retryCount < maxRetries) {
+              console.log('🔄 Retrying in 1 second...');
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
           }
-        } catch (error) {
-          console.error('❌ Error processing chat operator photo:', error);
+        }
+        
+        if (!photoProcessed) {
+          console.error('❌ Failed to process chat operator photo after all retries');
+          // Photo processing failed - logged to console
         }
 
         // Add chat open sound
@@ -5419,47 +5450,11 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
             console.warn('📝 Tried paths:', possiblePaths);
             console.warn('🔧 Creating instruction file instead');
             
-            // Add manual instruction file
-            assetsFolder.file('README-SOUND.txt', 
-              'ИНСТРУКЦИЯ ПО ДОБАВЛЕНИЮ ЗВУКА ЧАТА\n' +
-              '=====================================\n\n' +
-              'Звуковой файл не был найден автоматически.\n' +
-              'Исходный файл: C:\\Users\\840G5\\Desktop\\НОВЫЙ\\public\\1.mp3\n\n' +
-              'Попробованные пути:\n' +
-              possiblePaths.map(path => '- ' + path).join('\n') + '\n\n' +
-              'ЧТО ДЕЛАТЬ:\n' +
-              '1. Найдите файл 1.mp3 в папке public/\n' +
-              '2. Конвертируйте MP3 в OGG формат\n' +
-              '3. Поместите файл в эту папку (assets/)\n' +
-              '4. Переименуйте в chat-open.ogg\n\n' +
-              'ОНЛАЙН КОНВЕРТЕРЫ:\n' +
-              '- https://convertio.co/mp3-ogg/\n' +
-              '- https://online-audio-converter.com/\n' +
-              '- https://cloudconvert.com/mp3-to-ogg'
-            );
+            // Sound file not found - logged to console
           }
         } catch (error) {
           console.error('❌ Error processing chat sound:', error);
-          // Add manual instruction file with error details
-          assetsFolder.file('README-SOUND.txt', 
-            'ИНСТРУКЦИЯ ПО ДОБАВЛЕНИЮ ЗВУКА ЧАТА (ОШИБКА)\n' +
-            '============================================\n\n' +
-            'Произошла ошибка при автоматическом добавлении звука:\n' +
-            'Ошибка: ' + error.message + '\n\n' +
-            'Исходный файл: C:\\Users\\840G5\\Desktop\\НОВЫЙ\\public\\1.mp3\n\n' +
-            'ЧТО ДЕЛАТЬ:\n' +
-            '1. Найдите файл 1.mp3 в папке public/\n' +
-            '2. Конвертируйте MP3 в OGG формат\n' +
-            '3. Поместите файл в эту папку (assets/)\n' +
-            '4. Переименуйте в chat-open.ogg\n\n' +
-            'ОНЛАЙН КОНВЕРТЕРЫ:\n' +
-            '- https://convertio.co/mp3-ogg/\n' +
-            '- https://online-audio-converter.com/\n' +
-            '- https://cloudconvert.com/mp3-to-ogg\n\n' +
-            'ТЕХНИЧЕСКАЯ ИНФОРМАЦИЯ:\n' +
-            'Время ошибки: ' + new Date().toISOString() + '\n' +
-            'User Agent: ' + (typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown')
-          );
+          // Sound processing error - logged to console
         }
       }
 
@@ -6039,47 +6034,17 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
               }
             }
             
-            // Add summary file for all videos
-            videosFolder.file('ALL-VIDEOS-EXPORT.txt', 
-              'ALL VIDEOS EXPORTED\n' +
-              '===================\n\n' +
-              'The following videos were found and exported:\n\n' +
-              allVideos.map(video => {
-                const key = video.key || video.name || 'unknown';
-                const size = (video.value || video.blob || video).size || 'unknown';
-                return `- ${key} (${size} bytes)`;
-              }).join('\n') + '\n\n' +
-              'All videos were automatically added to:\n' +
-              '- assets/videos/ folder\n' +
-              '- assets/ folder (root)\n\n' +
-              'Exported at: ' + new Date().toISOString()
-            );
+            // Videos exported successfully - no summary file needed
           } else {
             console.log('ℹ️ No additional videos found in cache');
           }
         } catch (error) {
           console.error('❌ Error processing additional videos:', error);
-          videosFolder.file('ADDITIONAL-VIDEOS-ERROR.txt', 
-            'ADDITIONAL VIDEOS EXPORT ERROR\n' +
-            '==============================\n\n' +
-            'Error occurred while processing additional videos:\n' +
-            'Error: ' + error.message + '\n\n' +
-            'TECHNICAL INFORMATION:\n' +
-            'Error time: ' + new Date().toISOString() + '\n' +
-            'Error stack: ' + error.stack
-          );
+          // Error logged to console - no need for error file in export
         }
       } catch (error) {
         console.error('❌ Error during video export:', error);
-        videosFolder.file('VIDEO-EXPORT-MAIN-ERROR.txt', 
-          'VIDEO EXPORT MAIN ERROR\n' +
-          '======================\n\n' +
-          'Main error occurred during video export:\n' +
-          'Error: ' + error.message + '\n\n' +
-          'TECHNICAL INFORMATION:\n' +
-          'Error time: ' + new Date().toISOString() + '\n' +
-          'Error stack: ' + error.stack
-        );
+        // Error logged to console - no need for error file in export
       }
 
       // Export GIF from cache
@@ -6176,7 +6141,7 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
             ...headerData.runningLine,
             enabled: headerData.runningLine?.enabled || false,
             text: headerData.runningLine?.text || '',
-            speed: headerData.runningLine?.speed || 10,
+            speed: headerData.runningLine?.speed || 25,
             backgroundColor: headerData.runningLine?.backgroundColor || '#1976d2',
             textColor: headerData.runningLine?.textColor || '#ffffff',
             fontSize: headerData.runningLine?.fontSize || '20px',
@@ -6236,27 +6201,58 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
 
       // Process and add chat operator photo if live chat is enabled
       if (siteData.liveChatData?.enabled) {
-        try {
-          console.log('🎭 Processing chat operator photo for PHP...');
-          const response = await fetch('/api/process-chat-photo', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            }
-          });
-          
-          if (response.ok) {
-            const photoBlob = await response.blob();
-            const originalFile = response.headers.get('X-Original-File');
-            const photoSize = response.headers.get('X-Photo-Size');
+        let photoProcessed = false;
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (!photoProcessed && retryCount < maxRetries) {
+          try {
+            console.log(`🎭 Processing chat operator photo for PHP... (attempt ${retryCount + 1}/${maxRetries})`);
+            const response = await fetch('/api/process-chat-photo', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            });
             
-            imagesFolder.file('operator.jpg', photoBlob);
-            console.log(`✅ Chat operator photo added to PHP export: ${originalFile} (${photoSize} bytes)`);
-          } else {
-            console.warn('⚠️ Could not process chat operator photo for PHP:', response.status);
+            if (response.ok) {
+              const photoBlob = await response.blob();
+              const originalFile = response.headers.get('X-Original-File');
+              const photoSize = response.headers.get('X-Photo-Size');
+              
+              if (photoBlob && photoBlob.size > 0) {
+                imagesFolder.file('operator.jpg', photoBlob);
+                console.log(`✅ Chat operator photo added to PHP export: ${originalFile} (${photoSize} bytes)`);
+                photoProcessed = true;
+              } else {
+                console.warn(`⚠️ Photo blob is empty or invalid for PHP (attempt ${retryCount + 1})`);
+                retryCount++;
+                if (retryCount < maxRetries) {
+                  console.log('🔄 Retrying in 1 second...');
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+              }
+            } else {
+              console.warn(`⚠️ Could not process chat operator photo for PHP (attempt ${retryCount + 1}):`, response.status);
+              retryCount++;
+              if (retryCount < maxRetries) {
+                console.log('🔄 Retrying in 1 second...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+            }
+          } catch (error) {
+            console.error(`❌ Error processing chat operator photo for PHP (attempt ${retryCount + 1}):`, error);
+            retryCount++;
+            if (retryCount < maxRetries) {
+              console.log('🔄 Retrying in 1 second...');
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
           }
-        } catch (error) {
-          console.error('❌ Error processing chat operator photo for PHP:', error);
+        }
+        
+        if (!photoProcessed) {
+          console.error('❌ Failed to process chat operator photo for PHP after all retries');
+          // Photo processing failed for PHP - logged to console
         }
 
         // Add chat open sound for PHP
@@ -6315,47 +6311,12 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
             console.warn('📝 Tried paths for PHP:', possiblePaths);
             console.warn('🔧 Creating instruction file for PHP instead');
             
-            // Add manual instruction file
-            assetsFolder.file('README-SOUND.txt', 
-              'ИНСТРУКЦИЯ ПО ДОБАВЛЕНИЮ ЗВУКА ЧАТА (PHP)\n' +
-              '==========================================\n\n' +
-              'Звуковой файл не был найден автоматически.\n' +
-              'Исходный файл: C:\\Users\\840G5\\Desktop\\НОВЫЙ\\public\\1.mp3\n\n' +
-              'Попробованные пути:\n' +
-              possiblePaths.map(path => '- ' + path).join('\n') + '\n\n' +
-              'ЧТО ДЕЛАТЬ:\n' +
-              '1. Найдите файл 1.mp3 в папке public/\n' +
-              '2. Конвертируйте MP3 в OGG формат\n' +
-              '3. Поместите файл в эту папку (assets/)\n' +
-              '4. Переименуйте в chat-open.ogg\n\n' +
-              'ОНЛАЙН КОНВЕРТЕРЫ:\n' +
-              '- https://convertio.co/mp3-ogg/\n' +
-              '- https://online-audio-converter.com/\n' +
-              '- https://cloudconvert.com/mp3-to-ogg'
-            );
+            // Sound file not found for PHP - logged to console
           }
         } catch (error) {
           console.error('❌ Error processing chat sound for PHP:', error);
           // Add manual instruction file with error details
-          assetsFolder.file('README-SOUND.txt', 
-            'ИНСТРУКЦИЯ ПО ДОБАВЛЕНИЮ ЗВУКА ЧАТА (PHP - ОШИБКА)\n' +
-            '==================================================\n\n' +
-            'Произошла ошибка при автоматическом добавлении звука:\n' +
-            'Ошибка: ' + error.message + '\n\n' +
-            'Исходный файл: C:\\Users\\840G5\\Desktop\\НОВЫЙ\\public\\1.mp3\n\n' +
-            'ЧТО ДЕЛАТЬ:\n' +
-            '1. Найдите файл 1.mp3 в папке public/\n' +
-            '2. Конвертируйте MP3 в OGG формат\n' +
-            '3. Поместите файл в эту папку (assets/)\n' +
-            '4. Переименуйте в chat-open.ogg\n\n' +
-            'ОНЛАЙН КОНВЕРТЕРЫ:\n' +
-            '- https://convertio.co/mp3-ogg/\n' +
-            '- https://online-audio-converter.com/\n' +
-            '- https://cloudconvert.com/mp3-to-ogg\n\n' +
-            'ТЕХНИЧЕСКАЯ ИНФОРМАЦИЯ:\n' +
-            'Время ошибки: ' + new Date().toISOString() + '\n' +
-            'User Agent: ' + (typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown')
-          );
+          // Sound processing error for PHP - logged to console
         }
       }
 
@@ -6843,7 +6804,7 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
           ...data.headerData.runningLine,
           enabled: data.headerData.runningLine?.enabled || false,
           text: data.headerData.runningLine?.text || '',
-          speed: data.headerData.runningLine?.speed || 10,
+          speed: data.headerData.runningLine?.speed || 25,
           backgroundColor: data.headerData.runningLine?.backgroundColor || '#1976d2',
           textColor: data.headerData.runningLine?.textColor || '#ffffff',
           fontSize: data.headerData.runningLine?.fontSize || '20px',
@@ -7226,7 +7187,7 @@ ${data.liveChatData?.enabled ? generateLiveChatHTML(data.headerData.siteName || 
             ...headerData.runningLine,
             enabled: headerData.runningLine?.enabled || false,
             text: headerData.runningLine?.text || '',
-            speed: headerData.runningLine?.speed || 10,
+            speed: headerData.runningLine?.speed || 25,
             backgroundColor: headerData.runningLine?.backgroundColor || '#1976d2',
             textColor: headerData.runningLine?.textColor || '#ffffff',
             fontSize: headerData.runningLine?.fontSize || '20px',
