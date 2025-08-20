@@ -2025,7 +2025,18 @@ const EditorPanel = ({
       ${data.heroData.backgroundType === 'gradient' ? `background: linear-gradient(${data.heroData.gradientDirection || 'to right'}, ${data.heroData.gradientColor1 || '#ffffff'}, ${data.heroData.gradientColor2 || '#f5f5f5'});` : ''}
     ">
       ${data.heroData.backgroundType === 'image' ? `
-        <div class="hero-bg-animation" style="background-image: url('${data.heroData.backgroundImage.replace('/images/hero/', 'assets/images/')}');"></div>
+        <div class="hero-bg-animation" style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-image: url('${data.heroData.backgroundImage.replace('/images/hero/', 'assets/images/')}');
+          background-size: cover;
+          background-position: center;
+          filter: ${data.heroData.enableBlur ? `blur(${data.heroData.blurAmount || 0.1}px)` : 'none'};
+          z-index: 1;
+        "></div>
       ` : ''}
       ${data.heroData.backgroundType === 'video' ? `
         <div class="video-loading-overlay" id="videoLoadingOverlay">
@@ -2040,6 +2051,7 @@ const EditorPanel = ({
             width: 100%;
             height: 100%;
             object-fit: cover;
+            filter: ${data.heroData.enableBlur ? `blur(${data.heroData.blurAmount || 0.1}px)` : 'none'};
             z-index: 1;
           "
           autoplay="${data.heroData.videoAutoplay || true}"
@@ -2069,6 +2081,7 @@ const EditorPanel = ({
             width: 100%;
             height: 100%;
             object-fit: cover;
+            filter: ${data.heroData.enableBlur ? `blur(${data.heroData.blurAmount || 0.1}px)` : 'none'};
             z-index: 1;
           "
           src="${data.heroData.backgroundGif.replace('/assets/', 'assets/')}"
@@ -2078,14 +2091,20 @@ const EditorPanel = ({
       ` : ''}
       ${data.heroData.enableOverlay ? `
         <div class="hero-overlay" style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
           background: linear-gradient(rgba(0,0,0,${data.heroData.overlayOpacity / 100 || 0.5}), rgba(0,0,0,${data.heroData.overlayOpacity / 100 || 0.5}));
-          backdrop-filter: ${data.heroData.enableBlur ? `blur(${data.heroData.blurAmount || 0.1}px)` : 'none'};
+          z-index: 2;
         "></div>
       ` : ''}
       <div class="hero-content">
         <div class="hero-text-wrapper" style="
+          position: relative;
+          z-index: 10;
           background: rgba(0, 0, 0, 0.4);
-          backdrop-filter: blur(0.1px);
           padding: 2rem 3rem;
           border-radius: 20px;
           border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2140,7 +2159,6 @@ const EditorPanel = ({
               transition: all 0.3s ease;
               font-weight: 500;
               background: rgba(255, 255, 255, 0.1);
-              backdrop-filter: blur(0.1px);
             ">${contactData.title || 'Contact Us'}</a>
           </div>
         </div>

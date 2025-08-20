@@ -145,8 +145,7 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
 
     // Очищаем другие поля при смене типа фона
     let updatedData = {
-      ...defaultHeroData,
-      ...heroData,
+      ...heroData,  // Убираем defaultHeroData - он перезаписывает настройки!
       [field]: value
     };
 
@@ -175,65 +174,12 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
       }
     }
 
+    console.log('🎬 HeroEditor отправляет обновленные данные:', updatedData);
+    console.log('🎬 Поле для обновления:', field, 'Значение:', value);
     onHeroChange(updatedData);
 
-    // Обновление превью при изменении настроек
-    const previewHero = document.querySelector('#hero');
-    if (previewHero) {
-      // Очистка превью при смене типа фона
-      if (field === 'backgroundType') {
-        const heroVideo = previewHero.querySelector('.hero-video');
-        const heroGif = previewHero.querySelector('.hero-gif');
-        const heroImage = previewHero.querySelector('.hero-background');
-        
-        if (value === 'image') {
-          if (heroVideo) heroVideo.remove();
-          if (heroGif) heroGif.remove();
-        } else if (value === 'video') {
-          if (heroImage) heroImage.remove();
-          if (heroGif) heroGif.remove();
-        } else if (value === 'gif') {
-          if (heroVideo) heroVideo.remove();
-          if (heroImage) heroImage.remove();
-        }
-        
-        // Сбрасываем фоновое изображение
-        previewHero.style.backgroundImage = 'none';
-      }
-
-      // Обновление размытия
-      const heroOverlay = previewHero.querySelector('.hero-overlay');
-      if (heroOverlay) {
-        if (field === 'enableBlur') {
-          heroOverlay.style.backdropFilter = value ? `blur(${heroData.blurAmount || 0.1}px)` : 'none';
-        } else if (field === 'blurAmount') {
-          heroOverlay.style.backdropFilter = heroData.enableBlur ? `blur(${value}px)` : 'none';
-        }
-      }
-
-      // Обновление оверлея
-      if (field === 'enableOverlay') {
-        if (value) {
-          if (!heroOverlay) {
-            const overlay = document.createElement('div');
-            overlay.className = 'hero-overlay';
-            overlay.style.position = 'absolute';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.right = '0';
-            overlay.style.bottom = '0';
-            overlay.style.zIndex = '1';
-            overlay.style.pointerEvents = 'none'; // Чтобы оверлей не блокировал взаимодействие
-            previewHero.style.position = 'relative'; // Убедимся, что hero имеет position: relative
-            previewHero.appendChild(overlay);
-          }
-        } else if (heroOverlay) {
-          heroOverlay.remove();
-        }
-      } else if (field === 'overlayOpacity' && heroOverlay) {
-        heroOverlay.style.backgroundColor = `rgba(0, 0, 0, ${value / 100})`;
-      }
-    }
+    // НЕ обновляем превью через DOM - пусть React компонент сам обновляется
+    console.log('🎬 Полагаемся на React компонент для обновления превью');
   };
 
   const processImage = async (file) => {
@@ -291,8 +237,19 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
 
       const { url, filename, blob } = await processImage(file);
 
-      // Обновление данных hero
-      handleChange('backgroundImage', `/assets/images/${filename}`);
+      // Обновление данных hero с временным URL для превью
+      console.log('🖼️ Обновляем backgroundImage на:', `/assets/images/${filename}`);
+      console.log('🖼️ Текущий heroData перед обновлением:', heroData);
+      console.log('🖼️ Локальный URL для превью:', url);
+      
+      // Обновляем данные с временным URL для превью
+      const updatedHeroData = {
+        ...heroData,
+        backgroundImage: `/assets/images/${filename}`,
+        backgroundImagePreview: url // Временный URL для превью
+      };
+      
+      onHeroChange(updatedHeroData);
 
       // Сохранение метаданных изображения
       const imageMetadata = {
@@ -309,59 +266,11 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
       // Показ уведомления
       alert('Изображение успешно обработано и сохранено в кэш');
 
-      // Принудительное обновление превью
-      const heroImage = document.querySelector('.hero-background');
-      if (heroImage) {
-        heroImage.style.backgroundImage = `url(${url})`;
-      }
+      // НЕ обновляем превью через DOM - пусть React компонент сам обновляется
+      console.log('🖼️ Полагаемся на React компонент для обновления превью');
 
-      // Обновление превью на странице
-      const previewHero = document.querySelector('#hero');
-      if (previewHero) {
-        // Обновляем фоновое изображение
-        previewHero.style.backgroundImage = `url(${url})`;
-        
-        // Создаем или обновляем оверлей
-        let heroOverlay = previewHero.querySelector('.hero-overlay');
-        if (!heroOverlay) {
-          heroOverlay = document.createElement('div');
-          heroOverlay.className = 'hero-overlay';
-          heroOverlay.style.position = 'absolute';
-          heroOverlay.style.top = '0';
-          heroOverlay.style.left = '0';
-          heroOverlay.style.right = '0';
-          heroOverlay.style.bottom = '0';
-          heroOverlay.style.zIndex = '1';
-          heroOverlay.style.pointerEvents = 'none'; // Чтобы оверлей не блокировал взаимодействие
-          previewHero.style.position = 'relative'; // Убедимся, что hero имеет position: relative
-          previewHero.appendChild(heroOverlay);
-        }
-
-        // Применяем размытие и оверлей
-        if (heroData.enableBlur) {
-          heroOverlay.style.backdropFilter = `blur(${heroData.blurAmount || 0.1}px)`;
-        } else {
-          heroOverlay.style.backdropFilter = 'none';
-        }
-
-        if (heroData.enableOverlay) {
-          heroOverlay.style.backgroundColor = `rgba(0, 0, 0, ${heroData.overlayOpacity / 100})`;
-        } else {
-          heroOverlay.style.backgroundColor = 'transparent';
-        }
-      }
-
-      // Принудительное обновление компонента
-      setTimeout(() => {
-        const event = new CustomEvent('heroImageUpdated', {
-          detail: { 
-            imageUrl: url,
-            blur: heroData.enableBlur ? heroData.blurAmount : 0,
-            overlay: heroData.enableOverlay ? heroData.overlayOpacity : 0
-          }
-        });
-        window.dispatchEvent(event);
-      }, 100);
+      // НЕ нужно принудительное обновление - React компонент уже обновился
+      console.log('🖼️ React компонент обновлен с новыми данными');
     } catch (error) {
       console.error('Ошибка при загрузке:', error);
       alert('Ошибка при обработке изображения: ' + error.message);
@@ -453,65 +362,23 @@ const HeroEditor = ({ heroData = {}, onHeroChange, expanded, onToggle }) => {
       const { url, filename, file: videoFile } = await processVideo(file);
 
       // Обновление данных hero
-      handleChange('backgroundVideo', `/assets/videos/${filename}`);
+      console.log('🎬 Обновляем backgroundVideo на:', `/assets/videos/${filename}`);
+      console.log('🎬 Локальный URL для превью:', url);
+      
+      // Обновляем данные с временным URL для превью
+      const updatedHeroData = {
+        ...heroData,
+        backgroundVideo: `/assets/videos/${filename}`,
+        backgroundVideoPreview: url // Временный URL для превью
+      };
+      
+      onHeroChange(updatedHeroData);
+      
+      // НЕ обновляем превью через DOM - пусть React компонент сам обновляется
+      console.log('🎬 Полагаемся на React компонент для обновления превью');
 
       // Показ уведомления
       alert('Видео успешно обработано и сохранено в кэш');
-
-      // Принудительное обновление превью
-      const previewHero = document.querySelector('#hero');
-      if (previewHero) {
-        // Создаем или обновляем видео элемент
-        let heroVideo = previewHero.querySelector('.hero-video');
-        if (!heroVideo) {
-          heroVideo = document.createElement('video');
-          heroVideo.className = 'hero-video';
-          heroVideo.style.position = 'absolute';
-          heroVideo.style.top = '0';
-          heroVideo.style.left = '0';
-          heroVideo.style.width = '100%';
-          heroVideo.style.height = '100%';
-          heroVideo.style.objectFit = 'cover';
-          heroVideo.style.zIndex = '1';
-          previewHero.appendChild(heroVideo);
-        }
-
-        // Обновляем источник видео
-        heroVideo.src = url;
-        heroVideo.autoplay = heroData.videoAutoplay || true;
-        heroVideo.loop = heroData.videoLoop || true;
-        heroVideo.muted = heroData.videoMuted || true;
-        heroVideo.controls = heroData.videoControls || false;
-
-        // Создаем или обновляем оверлей
-        let heroOverlay = previewHero.querySelector('.hero-overlay');
-        if (!heroOverlay) {
-          heroOverlay = document.createElement('div');
-          heroOverlay.className = 'hero-overlay';
-          heroOverlay.style.position = 'absolute';
-          heroOverlay.style.top = '0';
-          heroOverlay.style.left = '0';
-          heroOverlay.style.right = '0';
-          heroOverlay.style.bottom = '0';
-          heroOverlay.style.zIndex = '2';
-          heroOverlay.style.pointerEvents = 'none';
-          previewHero.style.position = 'relative';
-          previewHero.appendChild(heroOverlay);
-        }
-
-        // Применяем размытие и оверлей
-        if (heroData.enableBlur) {
-          heroOverlay.style.backdropFilter = `blur(${heroData.blurAmount || 0.1}px)`;
-        } else {
-          heroOverlay.style.backdropFilter = 'none';
-        }
-
-        if (heroData.enableOverlay) {
-          heroOverlay.style.backgroundColor = `rgba(0, 0, 0, ${heroData.overlayOpacity / 100})`;
-        } else {
-          heroOverlay.style.backgroundColor = 'transparent';
-        }
-      }
 
       // Принудительное обновление компонента
       setTimeout(() => {

@@ -1519,7 +1519,17 @@ const PagePreview = ({
               videoLoop={heroData.videoLoop}
               videoMuted={heroData.videoMuted}
               videoControls={heroData.videoControls}
+              backgroundVideoPreview={heroData.backgroundVideoPreview}
+              backgroundImagePreview={heroData.backgroundImagePreview}
             />
+            {console.log('🎬 PagePreview передает в HeroSection:', {
+              backgroundType: heroData.backgroundType,
+              backgroundVideo: heroData.backgroundVideo,
+              backgroundVideoPreview: heroData.backgroundVideoPreview,
+              backgroundImage: heroData.backgroundImage,
+              backgroundImagePreview: heroData.backgroundImagePreview,
+              backgroundGif: heroData.backgroundGif
+            })}
           </Box>
           {Object.entries(sectionsData || {}).map(([sectionId, sectionContent]) => (
             <Box

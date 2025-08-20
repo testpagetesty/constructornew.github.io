@@ -96,7 +96,7 @@ const OverlayLayer = styled(Box)(({ theme }) => ({
 
 const HeroContent = styled(Box)(({ theme }) => ({
   position: 'relative',
-  zIndex: 3,
+  zIndex: 10,
   textAlign: 'center',
   padding: theme.spacing(4),
   maxWidth: '800px',
@@ -125,8 +125,22 @@ const HeroSection = ({
   videoAutoplay = true,
   videoLoop = true,
   videoMuted = true,
-  videoControls = false
+  videoControls = false,
+  // Временный URL для превью видео
+  backgroundVideoPreview = '',
+  // Временный URL для превью изображения
+  backgroundImagePreview = ''
 }) => {
+  console.log('🎬 HeroSection render:', { 
+    backgroundType, 
+    backgroundVideo, 
+    backgroundVideoPreview,
+    backgroundImage, 
+    backgroundImagePreview,
+    backgroundGif,
+    title, 
+    subtitle 
+  });
   const theme = useTheme();
   const [isPageLoaded, setIsPageLoaded] = useState(false);
 
@@ -164,9 +178,16 @@ const HeroSection = ({
     switch (backgroundType) {
       case 'image':
         let imageUrl = backgroundImage;
-        if (imageUrl && !imageUrl.startsWith('/images/hero/')) {
-          imageUrl = `/images/hero/${imageUrl}`;
+        // Для превью используем backgroundImagePreview (blob URL), иначе обычный путь
+        if (backgroundImagePreview) {
+          imageUrl = backgroundImagePreview;
+          console.log('🖼️ Используем preview URL для изображения:', imageUrl);
+        } else if (imageUrl && !imageUrl.startsWith('/assets/images/')) {
+          imageUrl = `/assets/images/${imageUrl}`;
+          console.log('🖼️ Используем обычный путь для изображения:', imageUrl);
         }
+        
+        console.log('🖼️ Создаем стиль для изображения:', { backgroundImage, backgroundImagePreview, imageUrl });
         
         return {
           ...baseStyle,
@@ -203,9 +224,15 @@ const HeroSection = ({
       <BackgroundLayer sx={getBackgroundStyle()} />
       
       {/* Видео фон */}
-      {backgroundType === 'video' && backgroundVideo && (
+      {backgroundType === 'video' && (backgroundVideo || backgroundVideoPreview) && (
+        console.log('🎬 Рендерим видео элемент:', { backgroundType, backgroundVideo, backgroundVideoPreview }) || true
+      ) && (
         <Box
           component="video"
+          onLoadStart={() => console.log('🎬 Видео начало загружаться:', backgroundVideo)}
+          onLoadedData={() => console.log('🎬 Видео загружено:', backgroundVideo)}
+          onError={(e) => console.error('❌ Ошибка загрузки видео:', e, backgroundVideo)}
+          onCanPlay={() => console.log('🎬 Видео готово к воспроизведению:', backgroundVideo)}
           sx={{
             position: 'absolute',
             top: 0,
@@ -244,18 +271,22 @@ const HeroSection = ({
           playsInline
           preload="auto"
         >
-          <source src={backgroundVideo} type="video/mp4" />
-          <source src={backgroundVideo.replace('.mp4', '.webm')} type="video/webm" />
-          <source src={backgroundVideo.replace('.mp4', '.ogg')} type="video/ogg" />
+          <source src={backgroundVideoPreview || backgroundVideo} type="video/mp4" />
+          <source src={(backgroundVideoPreview || backgroundVideo).replace('.mp4', '.webm')} type="video/webm" />
+          <source src={(backgroundVideoPreview || backgroundVideo).replace('.mp4', '.ogg')} type="video/ogg" />
           Ваш браузер не поддерживает видео.
         </Box>
       )}
 
       {/* GIF фон */}
       {backgroundType === 'gif' && backgroundGif && (
+        console.log('🖼️ Рендерим GIF элемент:', { backgroundType, backgroundGif }) || true
+      ) && (
         <Box
           component="img"
           src={backgroundGif}
+          onLoad={() => console.log('🖼️ GIF загружен:', backgroundGif)}
+          onError={(e) => console.error('❌ Ошибка загрузки GIF:', e, backgroundGif)}
           sx={{
             position: 'absolute',
             top: 0,

@@ -263,7 +263,8 @@ export default function Home() {
   };
 
   const handleHeroChange = (newHeroData) => {
-    console.log('handleHeroChange called with:', newHeroData);
+    console.log('🎬 handleHeroChange called with:', newHeroData);
+    console.log('🎬 Предыдущий heroData:', heroData);
     setHeroData(newHeroData);
   };
 
