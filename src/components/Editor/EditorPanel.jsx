@@ -1400,6 +1400,20 @@ const EditorPanel = ({
     }
   };
 
+  // Обертка для onHeaderChange с автоматическим обновлением title
+  const handleHeaderChange = (newHeaderData) => {
+    // Если изменился siteName, автоматически обновляем title
+    if (newHeaderData.siteName && newHeaderData.siteName !== headerData.siteName) {
+      // Если title пустой или совпадает со старым siteName, обновляем его
+      if (!newHeaderData.title || newHeaderData.title === headerData.siteName) {
+        newHeaderData.title = newHeaderData.siteName;
+      }
+    }
+    
+    // Вызываем оригинальную функцию
+    onHeaderChange(newHeaderData);
+  };
+
   if (!isAuthenticated) {
     return <AuthPanel onAuth={handleAuth} />;
   }
@@ -1518,7 +1532,7 @@ const EditorPanel = ({
 
     // Add new menu item to headerData
     const updatedMenuItems = [...headerData.menuItems, newMenuItem];
-    onHeaderChange({ ...headerData, menuItems: updatedMenuItems });
+    handleHeaderChange({ ...headerData, menuItems: updatedMenuItems });
 
     // Create new section with the same ID
     const newSection = {
@@ -1560,7 +1574,7 @@ const EditorPanel = ({
     
     const newHeaderData = { ...headerData, menuItems: updatedMenuItems };
     console.log('New headerData to be set:', newHeaderData);
-    onHeaderChange(newHeaderData);
+    handleHeaderChange(newHeaderData);
 
     // Check if section exists
     let sectionExists = sectionsData[id] !== undefined;
@@ -1596,7 +1610,7 @@ const EditorPanel = ({
   const handleConfirmDelete = () => {
     if (sectionToDelete) {
       const updatedMenuItems = headerData.menuItems.filter(item => item.id !== sectionToDelete);
-      onHeaderChange({ ...headerData, menuItems: updatedMenuItems });
+      handleHeaderChange({ ...headerData, menuItems: updatedMenuItems });
       
       // Delete section from sectionsData object
       const { [sectionToDelete]: deletedSection, ...restSections } = sectionsData;
@@ -7497,7 +7511,7 @@ ${data.liveChatData?.enabled ? generateLiveChatHTML(data.headerData.siteName || 
   const headerEditorBlock = (
         <HeaderEditor 
           headerData={headerData} 
-          onHeaderChange={onHeaderChange}
+          onHeaderChange={handleHeaderChange}
           heroData={heroData}
           contactData={contactData}
           expanded={expandedSections.header}
@@ -7549,7 +7563,7 @@ ${data.liveChatData?.enabled ? generateLiveChatHTML(data.headerData.siteName || 
         sectionsData={sectionsData} 
         onSectionsChange={onSectionsChange}
         headerData={headerData}
-        onHeaderChange={onHeaderChange}
+        onHeaderChange={handleHeaderChange}
         contactData={contactData}
         onContactChange={handleContactChangeWithLogging}
         legalDocuments={legalDocuments}

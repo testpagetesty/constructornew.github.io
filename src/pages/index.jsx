@@ -8,6 +8,7 @@ import AiParser from '../components/AiParser/AiParser';
 
 const initialHeaderData = {
   siteName: 'Юридическая компания "Право и Защита"',
+  title: '', // Пустое значение для автоматической подстановки из siteName
   description: '', // Пустое значение для принудительной синхронизации с hero
   titleColor: '#2196f3',
   backgroundColor: '#e3f2fd',

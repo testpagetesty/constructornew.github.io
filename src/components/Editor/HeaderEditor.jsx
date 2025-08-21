@@ -59,14 +59,26 @@ const HeaderEditor = ({
   const fileInputRef = useRef(null);
   const [showLanguageWarning, setShowLanguageWarning] = useState(false);
   const [descriptionEditedManually, setDescriptionEditedManually] = useState(false);
+  const [titleEditedManually, setTitleEditedManually] = useState(false);
 
 
-  // Инициализация заголовка при первом рендере
+  // Инициализация заголовка при первом рендере и при изменении siteName
   useEffect(() => {
     if (!headerData.title && headerData.siteName) {
       onHeaderChange({ ...headerData, title: headerData.siteName });
     }
-  }, []);
+  }, [headerData.siteName]);
+
+  // Автоматическое обновление title при изменении siteName
+  useEffect(() => {
+    if (headerData.siteName && headerData.title !== headerData.siteName) {
+      // Если title пустой или отличается от siteName, и не редактировался вручную - обновляем его
+      if ((!headerData.title || headerData.title.trim() === '') && !titleEditedManually) {
+        onHeaderChange({ ...headerData, title: headerData.siteName });
+        setTitleEditedManually(false); // Сбрасываем флаг ручного редактирования
+      }
+    }
+  }, [headerData.siteName]);
 
   // Синхронизация описания с подзаголовком hero секции
   useEffect(() => {
@@ -149,7 +161,15 @@ const HeaderEditor = ({
 
   const handleConfigLoaded = (config) => {
     if (config.header) {
-      onHeaderChange(config.header);
+      // При загрузке конфигурации принудительно обновляем title из siteName
+      const updatedHeader = {
+        ...config.header,
+        title: config.header.siteName || config.header.title || ''
+      };
+      onHeaderChange(updatedHeader);
+      // Сбрасываем флаг ручного редактирования при загрузке
+      setTitleEditedManually(false);
+      setDescriptionEditedManually(false);
     }
   };
 
@@ -479,14 +499,58 @@ const HeaderEditor = ({
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Title"
-                    value={headerData.title || headerData.siteName}
-                    onChange={(e) => onHeaderChange({ ...headerData, title: e.target.value })}
-                    placeholder={headerData.siteName}
-                    helperText="(по умолчанию берется из названия сайта)"
-                  />
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                    <TextField
+                      fullWidth
+                      label="Title"
+                      value={headerData.title || headerData.siteName}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        onHeaderChange({ ...headerData, title: newValue });
+                        // Если пользователь ввел что-то отличное от siteName - устанавливаем флаг ручного редактирования
+                        if (newValue !== headerData.siteName) {
+                          setTitleEditedManually(true);
+                        }
+                      }}
+                      placeholder={headerData.siteName}
+                      helperText={
+                        titleEditedManually
+                          ? "Отредактировано вручную (автоматическая синхронизация отключена)"
+                          : headerData.title === headerData.siteName 
+                          ? "Значение из названия сайта (можно редактировать)"
+                          : "Автоматически заполняется из названия сайта, но можно редактировать вручную"
+                      }
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#ffffff',
+                        }
+                      }}
+                    />
+                    {titleEditedManually && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => {
+                          setTitleEditedManually(false);
+                          onHeaderChange({ ...headerData, title: headerData.siteName || '' });
+                        }}
+                        title="Включить автоматическую синхронизацию с названием сайта"
+                        sx={{ 
+                          minWidth: 'auto',
+                          px: 1,
+                          height: '56px',
+                          borderColor: '#2e7d32',
+                          color: '#2e7d32',
+                          '&:hover': {
+                            borderColor: '#1b5e20',
+                            backgroundColor: 'rgba(46, 125, 50, 0.04)'
+                          }
+                        }}
+                      >
+                        🔄
+                      </Button>
+                    )}
+                  </Box>
                 </Grid>
                 <Grid item xs={12}>
                                       <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
