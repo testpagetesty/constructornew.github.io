@@ -2002,7 +2002,7 @@ const EditorPanel = ({
       <div class="nav-container">
         <div class="site-branding" style="display: flex; flex-direction: column; margin-right: 2rem;">
           <div class="logo" style="color: ${data.headerData.titleColor || '#000000'}">${data.headerData.siteName || 'My Site'}</div>
-          <div class="domain" style="color: ${data.headerData.titleColor || '#000000'}; opacity: 0.8; font-size: 0.9rem; display: none;">${data.headerData.domain || ''}</div>
+          ${data.headerData.domain ? `<div class="domain" style="color: ${data.headerData.titleColor || '#000000'}; opacity: 0.8; font-size: 0.9rem;">${data.headerData.domain}</div>` : ''}
         </div>
         <button class="menu-toggle" aria-label="Menu">
           <span></span>
@@ -2969,7 +2969,7 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
                     <i class="fas fa-envelope" style="color: ${contactData.iconColor || '#1976d2'}; margin-right: 0.5rem;"></i>
                     ${contactData.email}
                   </p>
-                  <div class="contact-domain" style="color: ${contactData.infoTextColor || '#333'}; opacity: 0.8; font-size: 0.9rem; margin-top: 4px; margin-left: 1.5rem; display: none;"></div>
+                  ${data.headerData.domain ? `<div class="contact-domain" style="color: ${contactData.infoTextColor || '#333'}; opacity: 0.8; font-size: 0.9rem; margin-top: 4px; margin-left: 1.5rem;">${data.headerData.domain}</div>` : ''}
                 ` : ''}
               </div>
             </div>
@@ -3047,7 +3047,7 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
             <i class="fas fa-envelope" style="color: ${data.footerData.iconColor || '#fff'}"></i>
             ${data.contactData.email || 'Email'}
           </p>
-          <div class="footer-domain" style="color: ${data.footerData.textColor || '#fff'}; opacity: 0.8; font-size: 0.9rem; margin-top: 4px; margin-left: 1.5rem; display: none;"></div>
+          ${data.headerData.domain ? `<div class="footer-domain" style="color: ${data.footerData.textColor || '#fff'}; opacity: 0.8; font-size: 0.9rem; margin-top: 4px; margin-left: 1.5rem;">${data.headerData.domain}</div>` : ''}
         </div>
 
         <div style="
@@ -4816,11 +4816,6 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         // Initialize automatic image slideshows
         initImageGalleries();
         
-        // Auto-detect and display current domain
-        autoDisplayDomain();
-        
-        // Also call with delay for reliability
-        setTimeout(autoDisplayDomain, 100);
       });
       
       // Function to initialize all image galleries on the page
@@ -4921,88 +4916,6 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         });
       }
       
-      // Function to automatically detect and display current domain
-      function autoDisplayDomain() {
-        // Get current domain from browser
-        const currentDomain = window.location.hostname;
-        console.log('Current domain detected:', currentDomain);
-        
-        // Skip if localhost or IP address
-        if (currentDomain === 'localhost' || 
-            currentDomain === '127.0.0.1' || 
-            currentDomain.includes('192.168.') ||
-            currentDomain.includes('10.0.') ||
-            /^\d+\.\d+\.\d+\.\d+$/.test(currentDomain)) {
-          console.log('Skipping domain display for localhost/IP');
-          return;
-        }
-        
-        console.log('Auto-displaying domain:', currentDomain);
-        
-        // Find domain display element in header
-        const domainElement = document.querySelector('.domain, .site-domain');
-        
-        if (domainElement) {
-          // Update existing domain element
-          domainElement.textContent = currentDomain;
-          domainElement.style.display = 'block';
-          console.log('Updated header domain element');
-        } else {
-          // Create new domain element if it doesn't exist
-          const sitebranding = document.querySelector('.site-branding');
-          if (sitebranding) {
-            const domainDiv = document.createElement('div');
-            domainDiv.className = 'domain';
-            domainDiv.textContent = currentDomain;
-            domainDiv.style.cssText = 'color: inherit; opacity: 0.8; font-size: 0.9rem; margin-top: 4px;';
-            sitebranding.appendChild(domainDiv);
-            console.log('Created new header domain element');
-          }
-        }
-        
-        // Update contact domain elements
-        const allContactDomainElements = document.querySelectorAll('.contact-domain');
-        console.log('Found contact domain elements:', allContactDomainElements.length);
-        
-        allContactDomainElements.forEach((domainElement, index) => {
-          const oldText = domainElement.textContent;
-          domainElement.textContent = currentDomain;
-          domainElement.style.display = 'block'; // Show the element like in header
-          console.log('Updated contact domain element', index + 1, 'from:', oldText, 'to:', currentDomain);
-        });
-        
-        // Update footer domain elements
-        const allFooterDomainElements = document.querySelectorAll('.footer-domain');
-        console.log('Found footer domain elements:', allFooterDomainElements.length);
-        
-        allFooterDomainElements.forEach((domainElement, index) => {
-          const oldText = domainElement.textContent;
-          domainElement.textContent = currentDomain;
-          domainElement.style.display = 'block'; // Show the element like in header
-          console.log('Updated footer domain element', index + 1, 'from:', oldText, 'to:', currentDomain);
-        });
-        
-        // Update any other domain references on the page
-        const domainPlaceholders = document.querySelectorAll('[data-auto-domain]');
-        domainPlaceholders.forEach(element => {
-          element.textContent = currentDomain;
-        });
-        
-        // Update contact email if it contains placeholder domain
-        const emailElements = document.querySelectorAll('a[href*="@"], [data-email]');
-        emailElements.forEach(element => {
-          const href = element.getAttribute('href') || '';
-          const text = element.textContent || '';
-          
-          if (href.includes('@example.com') || text.includes('@example.com')) {
-            const newHref = href.replace('@example.com', \`@\${currentDomain}\`);
-            const newText = text.replace('@example.com', \`@\${currentDomain}\`);
-            
-            if (href !== newHref) element.setAttribute('href', newHref);
-            if (text !== newText) element.textContent = newText;
-          }
-        });
-      }
       
       // Мгновенное появление hero секции
       document.addEventListener('DOMContentLoaded', function() {

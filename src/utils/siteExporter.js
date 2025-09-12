@@ -415,6 +415,63 @@ export const exportSite = async (siteData) => {
   } catch (error) {
     console.error('Error generating sitemap.xml for export:', error);
   }
+
+  // Add README with domain setup instructions
+  const readmeContent = `# Инструкция по настройке домена
+
+## 🚀 Быстрая настройка
+
+### Автоматический способ (рекомендуется)
+1. Загрузите все файлы сайта на ваш сервер
+2. Откройте в браузере: \`ваш-домен.com/update-sitemap.php\`
+3. Скрипт автоматически:
+   - Определит ваш домен
+   - Добавит домен в шапку всех страниц
+   - Обновит sitemap.xml
+   - Заменит example.com в email адресах
+4. Удалите файл \`update-sitemap.php\` с сервера
+
+### Ручной способ
+Если автоматический способ не работает:
+
+1. **Откройте файл \`index.html\`** в текстовом редакторе
+2. **Найдите строку:**
+   \`\`\`html
+   <div class="logo" style="color: #2196f3">CryptoInvest</div>
+   \`\`\`
+3. **Добавьте после неё:**
+   \`\`\`html
+   <div class="domain" style="color: #2196f3; opacity: 0.8; font-size: 0.9rem; margin-top: 4px;">ваш-домен.com</div>
+   \`\`\`
+4. **Замените \`ваш-домен.com\`** на ваш реальный домен
+5. **Повторите для других страниц** (merci.html, privacy-policy.html и т.д.)
+
+## 📁 Структура файлов
+
+- \`index.html\` - главная страница
+- \`merci.html\` - страница благодарности
+- \`privacy-policy.html\` - политика конфиденциальности
+- \`terms-of-service.html\` - условия использования
+- \`cookie-policy.html\` - политика cookies
+- \`sitemap.xml\` - карта сайта
+- \`update-sitemap.php\` - скрипт настройки домена
+
+## ⚠️ Важно
+
+- После настройки домена **удалите файл \`update-sitemap.php\`** с сервера
+- Проверьте, что домен отображается в шапке сайта
+- Загрузите обновленный \`sitemap.xml\` в Google Search Console
+
+## 🆘 Поддержка
+
+Если возникли проблемы:
+1. Проверьте права на запись файлов на сервере
+2. Убедитесь, что PHP работает на сервере
+3. Проверьте консоль браузера на ошибки
+`;
+  
+  zip.file('README-DOMAIN-SETUP.txt', readmeContent);
+  console.log('README-DOMAIN-SETUP.txt successfully added to export');
   
   // Generate and download zip
   const content = await zip.generateAsync({ type: 'blob' });
@@ -1049,15 +1106,6 @@ const generateAppJs = (siteData) => {
       initializeScripts();
       initializeAnimations();
       
-      // Add a small delay to ensure DOM is fully loaded
-      setTimeout(() => {
-        console.log('Starting autoDisplayDomain function...');
-        autoDisplayDomain();
-        console.log('Finished autoDisplayDomain function');
-      }, 100);
-      
-      // Also try without delay for immediate execution
-      autoDisplayDomain();
     });
     
     function initializeVideoPreloading() {
@@ -1221,86 +1269,6 @@ const generateAppJs = (siteData) => {
       });
     }
 
-    function autoDisplayDomain() {
-      // Get current domain from browser
-      const currentDomain = window.location.hostname;
-      
-      // Skip if localhost or IP address
-      if (currentDomain === 'localhost' || 
-          currentDomain === '127.0.0.1' || 
-          currentDomain.includes('192.168.') ||
-          currentDomain.includes('10.0.') ||
-          /^\\d+\\.\\d+\\.\\d+\\.\\d+$/.test(currentDomain)) {
-        console.log('Skipping domain display for localhost/IP');
-        return;
-      }
-      
-      console.log('Auto-displaying domain:', currentDomain);
-      
-      // Find domain display element in header
-      const domainElement = document.querySelector('.domain, .site-domain');
-      
-      if (domainElement) {
-        // Update existing domain element
-        domainElement.textContent = currentDomain;
-        domainElement.style.display = 'block';
-        console.log('Updated header domain element');
-      } else {
-        // Create new domain element if it doesn't exist
-        const sitebranding = document.querySelector('.site-branding');
-        if (sitebranding) {
-          const domainDiv = document.createElement('div');
-          domainDiv.className = 'domain';
-          domainDiv.textContent = currentDomain;
-          domainDiv.style.cssText = 'color: inherit; opacity: 0.8; font-size: 0.9rem; margin-top: 4px;';
-          sitebranding.appendChild(domainDiv);
-          console.log('Created new header domain element');
-        }
-      }
-      
-      // Update contact domain elements
-      const allContactDomainElements = document.querySelectorAll('.contact-domain');
-      console.log('Found contact domain elements:', allContactDomainElements.length);
-      
-      allContactDomainElements.forEach((domainElement, index) => {
-        const oldText = domainElement.textContent;
-        domainElement.textContent = currentDomain;
-        domainElement.style.display = 'block'; // Show the element like in header
-        console.log('Updated contact domain element', index + 1, 'from:', oldText, 'to:', currentDomain);
-      });
-      
-      // Update footer domain elements
-      const allFooterDomainElements = document.querySelectorAll('.footer-domain');
-      console.log('Found footer domain elements:', allFooterDomainElements.length);
-      
-      allFooterDomainElements.forEach((domainElement, index) => {
-        const oldText = domainElement.textContent;
-        domainElement.textContent = currentDomain;
-        domainElement.style.display = 'block'; // Show the element like in header
-        console.log('Updated footer domain element', index + 1, 'from:', oldText, 'to:', currentDomain);
-      });
-      
-      // Update any other domain references on the page
-      const domainPlaceholders = document.querySelectorAll('[data-auto-domain]');
-      domainPlaceholders.forEach(element => {
-        element.textContent = currentDomain;
-      });
-      
-      // Update contact email if it contains placeholder domain
-      const emailElements = document.querySelectorAll('a[href*="@"], [data-email]');
-      emailElements.forEach(element => {
-        const href = element.getAttribute('href') || '';
-        const text = element.textContent || '';
-        
-        if (href.includes('@example.com') || text.includes('@example.com')) {
-          const newHref = href.replace('@example.com', \`@\${currentDomain}\`);
-          const newText = text.replace('@example.com', \`@\${currentDomain}\`);
-          
-          if (href !== newHref) element.setAttribute('href', newHref);
-          if (text !== newText) element.textContent = newText;
-        }
-      });
-    }
   `);
 };
 
@@ -1323,7 +1291,7 @@ const generateSiteContent = (siteData) => {
         <div class="header-content">
           <div class="site-branding">
             <h1 class="site-title">${headerData.siteName || 'My Site'}</h1>
-            <div class="site-domain" style="display: none;">${headerData.domain || ''}</div>
+            ${headerData.domain ? `<div class="site-domain">${headerData.domain}</div>` : ''}
           </div>
           <nav class="site-nav">
             ${(headerData.menuItems || []).map(item => `
@@ -1370,7 +1338,7 @@ const generateNavigation = (siteData) => {
     <div class="nav-container">
       <div class="site-branding" style="display: flex; flex-direction: column; margin-right: 2rem;">
         <div class="logo">${headerData.siteName || 'My Site'}</div>
-        <div class="domain" style="display: none;">${headerData.domain || ''}</div>
+        ${headerData.domain ? `<div class="domain">${headerData.domain}</div>` : ''}
       </div>
       <button class="menu-toggle" aria-label="Menu">
         <span></span>
