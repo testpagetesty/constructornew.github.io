@@ -113,21 +113,21 @@ echo "<br><h3>🗺️ Обновление sitemap.xml:</h3>";
 $sitemapFile = 'sitemap.xml';
 
 if (file_exists($sitemapFile)) {
-    $sitemapContent = file_get_contents($sitemapFile);
-    
+$sitemapContent = file_get_contents($sitemapFile);
+
     if ($sitemapContent !== false) {
-        $updatedContent = str_replace('https://example.com', $currentDomain, $sitemapContent);
-        $updatedContent = str_replace('http://example.com', $currentDomain, $updatedContent);
-        
+$updatedContent = str_replace('https://example.com', $currentDomain, $sitemapContent);
+$updatedContent = str_replace('http://example.com', $currentDomain, $updatedContent);
+
         // Обновляем дату последнего изменения
         $currentDate = date('c');
-        $updatedContent = preg_replace(
-            '/<lastmod>.*?<\/lastmod>/',
-            '<lastmod>' . $currentDate . '</lastmod>',
-            $updatedContent
-        );
-        
-        if (file_put_contents($sitemapFile, $updatedContent) !== false) {
+$updatedContent = preg_replace(
+    '/<lastmod>.*?<\/lastmod>/',
+    '<lastmod>' . $currentDate . '</lastmod>',
+    $updatedContent
+);
+
+if (file_put_contents($sitemapFile, $updatedContent) !== false) {
             echo "✅ sitemap.xml успешно обновлен<br>";
             $successCount++;
         } else {
@@ -152,11 +152,11 @@ if ($errorCount > 0) {
 }
 
 echo "<br>🎯 <strong>Что дальше:</strong><br>";
-echo "1. Удалите этот файл (update-sitemap.php) с сервера<br>";
+    echo "1. Удалите этот файл (update-sitemap.php) с сервера<br>";
 echo "2. Проверьте, что домен отображается в шапке сайта<br>";
 echo "3. Загрузите обновленный sitemap.xml в Google Search Console<br>";
 echo "4. Проверьте работоспособность всех страниц<br>";
-
+    
 if (file_exists($sitemapFile)) {
     echo "<br><hr><h3>📋 Превью обновленного sitemap.xml:</h3>";
     $sitemapContent = file_get_contents($sitemapFile);
