@@ -6760,6 +6760,7 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
         ...data.headerData,
         siteName: data.headerData.siteName || 'My Site',
         title: data.headerData.siteName || 'My Site',
+        description: data.headerData.description || 'Наш сайт предлагает лучшие решения',
         menuItems: data.headerData.menuItems || [],
         siteBackgroundImage: data.headerData.siteBackgroundType === 'image' ? 'assets/images/fon.jpg' : '',
         language: data.headerData.language || 'en',
