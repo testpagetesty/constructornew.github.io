@@ -106,18 +106,14 @@ const HeaderEditor = ({
     }
   }, [heroData?.subtitle]); // Убираем headerData?.description из зависимостей
 
-  // Принудительная инициализация description при первом рендере
+  // Логирование для отладки description
   useEffect(() => {
-    console.log('🔄 HeaderEditor: Принудительная инициализация useEffect сработал');
+    console.log('🔄 HeaderEditor: useEffect для отладки description');
     console.log('🔄 HeaderEditor: heroData.subtitle:', heroData?.subtitle);
     console.log('🔄 HeaderEditor: headerData.description:', headerData.description);
     
-    // Инициализируем только если description пустой и есть subtitle
-    if (heroData?.subtitle && (!headerData.description || headerData.description.trim() === '')) {
-      console.log('🔄 HeaderEditor: Принудительная инициализация description с hero.subtitle:', heroData.subtitle);
-      onHeaderChange({ ...headerData, description: heroData.subtitle });
-    }
-  }, [heroData?.subtitle]); // Добавляем heroData?.subtitle в зависимости
+    // Убираем принудительную инициализацию - пусть description управляется явно
+  }, [heroData?.subtitle, headerData.description]);
 
   // Проверка языка при размонтировании компонента
   useEffect(() => {

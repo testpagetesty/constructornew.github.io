@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+`import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Paper, Typography, Grid, TextField, Button, Collapse, Stack, IconButton, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Switch, Container, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import HeaderEditor from './HeaderEditor';
 import HeroEditor from './HeroEditor';
@@ -6085,6 +6085,11 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
 
       console.log('🔍 PHP Export - headerData.description:', headerData.description);
       console.log('🔍 PHP Export - headerData:', headerData);
+      console.log('🔍 PHP Export - Environment:', {
+        isVercel: process.env.NODE_ENV === 'production',
+        userAgent: navigator.userAgent,
+        location: window.location.href
+      });
       
       const siteData = {
         headerData: {
