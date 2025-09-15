@@ -84,12 +84,12 @@ const HeaderEditor = ({
     console.log('🔄 HeaderEditor: useEffect сработал, heroData.subtitle:', heroData?.subtitle);
     console.log('🔄 HeaderEditor: текущий headerData.description:', headerData?.description);
     
-    // ВСЕГДА синхронизируем description с hero.subtitle
-    if (heroData?.subtitle) {
+    // Синхронизируем description с hero.subtitle, если они отличаются
+    if (heroData?.subtitle && headerData?.description !== heroData.subtitle) {
       console.log('🔄 HeaderEditor: Синхронизирую description с hero.subtitle:', heroData.subtitle);
       onHeaderChange({ ...headerData, description: heroData.subtitle });
     }
-  }, [heroData?.subtitle]); // Убираем headerData?.description из зависимостей
+  }, [heroData?.subtitle, headerData?.description]); // Добавляем headerData?.description в зависимости
 
   // Логирование для отладки description
   useEffect(() => {

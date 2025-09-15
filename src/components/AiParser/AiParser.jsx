@@ -2426,6 +2426,12 @@ info@company.com
               if (parsedData.hero && parsedData.hero.siteName) {
                 finalHeaderData.siteName = parsedData.hero.siteName;
               }
+              
+              // Проверим, был ли обновлен description через hero
+              if (parsedData.hero && parsedData.hero.description) {
+                console.log('🔄 FULL_SITE: Обновляю finalHeaderData.description из hero.description:', parsedData.hero.description);
+                finalHeaderData.description = parsedData.hero.description;
+              }
 
               // Обрабатываем презентационное сообщение для бегущей строки
               if (parsedData.runningLineMessage) {

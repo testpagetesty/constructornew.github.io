@@ -1,4 +1,4 @@
-`import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Box, Paper, Typography, Grid, TextField, Button, Collapse, Stack, IconButton, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Switch, Container, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import HeaderEditor from './HeaderEditor';
 import HeroEditor from './HeroEditor';
@@ -2174,7 +2174,7 @@ const EditorPanel = ({
               font-weight: 500;
               background: rgba(255, 255, 255, 0.1);
             ">${contactData.title || 'Contact Us'}</a>
-          </div>
+          </div>ьныйый
         </div>
       </div>
     </section>
