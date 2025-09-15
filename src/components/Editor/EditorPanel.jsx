@@ -1930,7 +1930,7 @@ const EditorPanel = ({
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="stylesheet" href="assets/css/styles.css">
-  <meta name="description" content="${data.headerData.description || data.heroData?.subtitle || 'Our site offers the best solutions'}">
+  <meta name="description" content="${data.headerData.description || 'Наш сайт предлагает лучшие решения'}">
   ${data.headerData.domain ? `<link rel="canonical" href="https://${data.headerData.domain}" />` : ''}
   <style>
     /* Live Chat Styles */
@@ -6083,6 +6083,9 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
         cards: section.cards || []
       }));
 
+      console.log('🔍 PHP Export - headerData.description:', headerData.description);
+      console.log('🔍 PHP Export - headerData:', headerData);
+      
       const siteData = {
         headerData: {
           ...headerData,
@@ -6744,6 +6747,7 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
 
   const generatePHP = (data) => {
     console.log('Generating PHP site with data:', data);
+    console.log('🔍 generatePHP - data.headerData.description:', data.headerData?.description);
     
     // Prepare data for HTML generation
     const siteData = {
@@ -6751,7 +6755,6 @@ if (file_put_contents($sitemapFile, $updatedContent) !== false) {
         ...data.headerData,
         siteName: data.headerData.siteName || 'My Site',
         title: data.headerData.siteName || 'My Site',
-        description: data.headerData.description || data.heroData?.subtitle || 'Our site offers the best solutions',
         menuItems: data.headerData.menuItems || [],
         siteBackgroundImage: data.headerData.siteBackgroundType === 'image' ? 'assets/images/fon.jpg' : '',
         language: data.headerData.language || 'en',
@@ -6867,7 +6870,7 @@ EOL;
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="stylesheet" href="assets/css/styles.css">
-  <meta name="description" content="${data.headerData.description || data.heroData?.subtitle || 'Our site offers the best solutions'}">
+  <meta name="description" content="${data.headerData.description || 'Наш сайт предлагает лучшие решения'}">
   <style>
     /* Live Chat Styles */
     ${data.liveChatData?.enabled ? generateLiveChatCSS() : ''}

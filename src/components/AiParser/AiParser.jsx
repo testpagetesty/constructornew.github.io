@@ -2920,13 +2920,20 @@ info@company.com
         case 'HERO':
           parsedData = parsers.parseHero(content);
           if (parsedData) {
-            // Обновляем название сайта в headerData
+            // Обновляем название сайта и description в headerData
+            const updatedHeaderData = { ...headerData };
             if (parsedData.siteName) {
-              onHeaderChange({
-                ...headerData,
-                siteName: parsedData.siteName
-              });
+              updatedHeaderData.siteName = parsedData.siteName;
             }
+            if (parsedData.description) {
+              console.log('🔄 HERO: Обновляю headerData.description из hero.description:', parsedData.description);
+              updatedHeaderData.description = parsedData.description;
+            }
+            
+            if (parsedData.siteName || parsedData.description) {
+              onHeaderChange(updatedHeaderData);
+            }
+            
             // Обновляем hero секцию
             onHeroChange({
               ...heroData,
