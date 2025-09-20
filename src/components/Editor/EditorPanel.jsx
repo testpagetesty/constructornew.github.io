@@ -1986,7 +1986,6 @@ const EditorPanel = ({
   "></div>
   ` : ''}
   
-  <!-- Бегущая строка -->
   ${data.headerData.runningLine?.enabled && data.headerData.runningLine?.text ? `
   <div class="running-line-container">
     <div class="running-line" style="
@@ -2174,7 +2173,7 @@ const EditorPanel = ({
               font-weight: 500;
               background: rgba(255, 255, 255, 0.1);
             ">${contactData.title || 'Contact Us'}</a>
-          </div>ьныйый
+          </div>
         </div>
       </div>
     </section>
@@ -2555,13 +2554,11 @@ const EditorPanel = ({
                 ">${section.description}</p>
               ` : ''}
               ${(() => {
-                // Проверяем наличие изображений
                 const hasImages = Array.isArray(section.images) && section.images.length > 0;
                 const hasSingleImage = section.imagePath && !hasImages;
                 
                 if (hasImages) {
                   if (section.images.length === 1) {
-                    // Одно изображение из массива
                     const imgPath = typeof section.images[0] === 'string' 
                       ? section.images[0].replace('/images/sections/', 'assets/images/')
                       : (section.images[0].path || section.images[0].url || '').replace('/images/sections/', 'assets/images/');
@@ -2585,7 +2582,6 @@ const EditorPanel = ({
                       </div>
                     `;
                   } else {
-                    // Несколько изображений - делаем слайдер
                     return `
                       <div class="section-gallery" data-section-id="${section.id}" style="
                         width: 100%;
@@ -2914,7 +2910,7 @@ const EditorPanel = ({
                   localStorage.removeItem('contactFormData');
                   
                   // Send form data to Formspree
-const response = await fetch('https://formspree.io/f/mqalqbeo', {
+const response = await fetch('YOUR_FORMSPREE_ENDPOINT', {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -3204,7 +3200,6 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
 </html>`;
   };
 
-  // Генерация стилей для бегущей строки
   const getRunningLineTextStyles = (runningLineData) => {
     if (!runningLineData) return '';
     
@@ -3223,7 +3218,6 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
       return (usePound ? '#' : '') + (r << 16 | g << 8 | b).toString(16).padStart(6, '0');
     };
 
-    // Функция для получения яркости цвета (0-255)
     const getBrightness = (color) => {
       const usePound = color[0] === '#';
       const col = usePound ? color.slice(1) : color;
@@ -3234,31 +3228,25 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
       return (r * 299 + g * 587 + b * 114) / 1000;
     };
 
-    // Функция для создания контрастного цвета тени для 3D эффекта
     const get3DShadowColor = (textColor, backgroundColor) => {
       const textBrightness = getBrightness(textColor);
       const bgBrightness = getBrightness(backgroundColor);
       
-      // Если текст светлый, делаем тень темнее
       if (textBrightness > 128) {
-        return adjustColor(textColor, -80); // Темнее
+        return adjustColor(textColor, -80);
       } else {
-        // Если текст темный, делаем тень светлее
-        return adjustColor(textColor, 60); // Светлее
+        return adjustColor(textColor, 60);
       }
     };
 
-    // Функция для создания контрастной обводки
     const getContrastOutline = (textColor, backgroundColor) => {
       const textBrightness = getBrightness(textColor);
       const bgBrightness = getBrightness(backgroundColor);
       
-      // Если разница яркости небольшая, используем черную или белую обводку
       if (Math.abs(textBrightness - bgBrightness) < 100) {
         return textBrightness > 128 ? '#000000' : '#ffffff';
       }
       
-      // Иначе используем противоположный цвет
       return textBrightness > bgBrightness ? '#000000' : '#ffffff';
     };
     
@@ -4789,7 +4777,7 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
           const formData = new FormData(form);
           
           // Send form data
-          fetch('https://formspree.io/f/mqalqbeo', {
+          fetch('YOUR_FORMSPREE_ENDPOINT', {
             method: 'POST',
             body: formData,
             headers: {
@@ -4917,18 +4905,15 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
       }
       
       
-      // Мгновенное появление hero секции
       document.addEventListener('DOMContentLoaded', function() {
         const hero = document.querySelector('.hero');
         if (hero) {
           hero.style.opacity = '1';
           
-          // Принудительно убираем рамки с hero секции
           hero.style.border = 'none';
           hero.style.outline = 'none';
           hero.style.boxShadow = 'none';
           
-          // Убираем рамки со всех дочерних элементов
           const allElements = hero.querySelectorAll('*');
           allElements.forEach(element => {
             if (element.style) {
@@ -4940,7 +4925,6 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         }
       });
 
-      // Мгновенное появление контента
       document.addEventListener('DOMContentLoaded', function() {
         const heroContent = document.querySelector('.hero-content');
         if (heroContent) {
@@ -4948,7 +4932,6 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         }
       });
 
-      // Быстрое появление секций
       document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
           const sections = document.querySelectorAll('.section');
@@ -4967,7 +4950,6 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
         scrollTimeout = setTimeout(() => {
           const heroVideo = document.getElementById('heroVideo');
           if (heroVideo) {
-            // Принудительно скрываем все элементы управления
             const controls = heroVideo.querySelectorAll('*');
             controls.forEach(control => {
               if (control.style) {
@@ -4977,7 +4959,6 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
             });
           }
           
-          // Постоянно убираем рамки с hero секции
           const hero = document.querySelector('.hero');
           if (hero) {
             hero.style.border = 'none';
@@ -5095,12 +5076,9 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
   const generateSafeFileName = (siteData) => {
     let fileName = '';
     
-    // Приоритет: домен, затем название сайта
     if (siteData.headerData.domain && siteData.headerData.domain.trim()) {
       fileName = siteData.headerData.domain.trim();
-      // Убираем протокол если есть
       fileName = fileName.replace(/^https?:\/\//, '');
-      // Убираем www. если есть
       fileName = fileName.replace(/^www\./, '');
     } else if (siteData.headerData.siteName && siteData.headerData.siteName.trim()) {
       fileName = siteData.headerData.siteName.trim();
@@ -5108,13 +5086,12 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
       fileName = 'site';
     }
     
-    // Заменяем недопустимые символы для имени файла
     fileName = fileName
-      .replace(/[<>:"/\\|?*]/g, '') // Убираем недопустимые символы Windows
-      .replace(/\s+/g, '-') // Заменяем пробелы на дефисы
-      .replace(/[^a-zA-Z0-9а-яА-ЯёЁ\-\.]/g, '') // Оставляем только буквы (включая кириллицу), цифры, дефисы и точки
-      .replace(/--+/g, '-') // Убираем множественные дефисы
-      .replace(/^-+|-+$/g, ''); // Убираем дефисы в начале и конце
+      .replace(/[<>:"/\\|?*]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/[^a-zA-Z0-9а-яА-ЯёЁ\-\.]/g, '')
+      .replace(/--+/g, '-')
+      .replace(/^-+|-+$/g, '');
     
     return fileName || 'site';
   };
@@ -5445,57 +5422,44 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
       ];
 
       legalDocs.forEach(doc => {
-        // Обработка контента: первая строка будет отцентрирована и выделена
         const contentLines = doc.content.split('\n');
         const firstLine = contentLines[0] ? `<h1>${contentLines[0]}</h1>` : '';
         const remainingContent = contentLines.slice(1).join('\n');
         
-        // Улучшенная обработка текста для выделения заголовков разделов и форматирования
         let processedContent = firstLine;
         
-        // Шаблоны для определения заголовков разделов
-        const sectionHeaderPattern = /^\d+\.\s+(.+)/;  // Для формата: "1. Раздел"
-        const sectionHeaderPattern2 = /^([IVX]+)\.\s+(.+)/; // Для римских цифр: "I. Раздел"
-        const sectionHeaderPattern3 = /^([А-ЯA-Z][\wа-яА-Я\s]{2,}):$/; // Для ЗАГОЛОВКОВ ПРОПИСНЫМИ
+        const sectionHeaderPattern = /^\d+\.\s+(.+)/;
+        const sectionHeaderPattern2 = /^([IVX]+)\.\s+(.+)/;
+        const sectionHeaderPattern3 = /^([А-ЯA-Z][\wа-яА-Я\s]{2,}):$/;
         
-        // Разбиваем текст на абзацы
         const paragraphs = remainingContent.split('\n');
         
-        // Обрабатываем каждый абзац
         paragraphs.forEach(paragraph => {
           paragraph = paragraph.trim();
           
           if (!paragraph) {
-            // Пустые строки превращаем в разделители
             processedContent += '<br>';
             return;
           }
           
-          // Проверяем, является ли строка заголовком раздела
           const match1 = paragraph.match(sectionHeaderPattern);
           const match2 = paragraph.match(sectionHeaderPattern2);
           const match3 = paragraph.match(sectionHeaderPattern3);
           
           if (match1) {
-            // Формат "1. Заголовок"
             processedContent += `<h2>${paragraph}</h2>`;
           } else if (match2) {
-            // Формат "I. Заголовок"
             processedContent += `<h2>${paragraph}</h2>`;
           } else if (match3) {
-            // Формат "ЗАГОЛОВОК:"
             processedContent += `<h2>${paragraph}</h2>`;
           } else if (/^\d+\.\d+\./.test(paragraph)) {
-            // Подразделы вида "1.1. Подраздел"
             processedContent += `<h3>${paragraph}</h3>`;
           } else if (paragraph.startsWith('•') || paragraph.startsWith('-') || paragraph.startsWith('*')) {
-            // Маркированные списки
             if (!processedContent.endsWith('</ul>') && !processedContent.endsWith('<ul>')) {
               processedContent += '<ul>';
             }
             processedContent += `<li>${paragraph.substring(1).trim()}</li>`;
             
-            // Проверяем, нужно ли закрыть список
             if (paragraphs.indexOf(paragraph) === paragraphs.length - 1 || 
                 !paragraphs[paragraphs.indexOf(paragraph) + 1].startsWith('•') &&
                 !paragraphs[paragraphs.indexOf(paragraph) + 1].startsWith('-') &&
@@ -5503,9 +5467,7 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
               processedContent += '</ul>';
             }
           } else {
-            // Обычные параграфы
             if (paragraph.length > 0) {
-              // Выделяем важные термины жирным
               paragraph = paragraph
                 .replace(/«([^»]+)»/g, '«<strong>$1</strong>»')
                 .replace(/"([^"]+)"/g, '"<strong>$1</strong>"');
@@ -5515,12 +5477,11 @@ const response = await fetch('https://formspree.io/f/mqalqbeo', {
           }
         });
         
-        // Дополнительная обработка для улучшения читабельности
         processedContent = processedContent
-          .replace(/(\d+\.\d+\.\d+\.)/g, '<strong>$1</strong>') // Выделяем номера подразделов
-          .replace(/([А-ЯA-Z]{2,})/g, '<strong>$1</strong>') // Выделяем слова ПРОПИСНЫМИ
-          .replace(/(ФЗ [№"]\d+[^<]*?[»"])/g, '<strong>$1</strong>') // Выделяем упоминания законов
-          .replace(/([0-9]+\s*(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\s*[0-9]{4})/gi, '<em>$1</em>'); // Выделяем даты
+          .replace(/(\d+\.\d+\.\d+\.)/g, '<strong>$1</strong>')
+          .replace(/([А-ЯA-Z]{2,})/g, '<strong>$1</strong>')
+          .replace(/(ФЗ [№"]\d+[^<]*?[»"])/g, '<strong>$1</strong>')
+          .replace(/([0-9]+\s*(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\s*[0-9]{4})/gi, '<em>$1</em>');
 
         const htmlContent = `
 <!DOCTYPE html>
